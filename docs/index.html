@@ -27,7 +27,8 @@
         {title:"계측기 전체 목록·관리대장",file:"assets/preview-instruments.svg",summary:"관리번호, 계측기명, 부서, 위치, 상태, 차기 검교정일을 목록에서 검색하고 관리대장 상세를 엽니다."},
         {title:"검교정 계획·이력",file:"assets/preview-calibration.svg",summary:"연간·월간 검교정 계획과 실적, 결과, 검교정 기관, 성적서 첨부 이력을 관리합니다."},
         {title:"SPC·공정능력 분석",file:"assets/preview-spc.svg",summary:"측정 데이터로 X-bar/R 관리도와 히스토그램을 표시하고 공정능력 지표를 함께 확인합니다."},
-        {title:"교육 자료·자격 관리",file:"assets/preview-training.svg",summary:"교육 교재 목록과 교육 내용, 작업자별 특별특성 공정 자격 현황을 찾아봅니다."}
+        {title:"교육 자료·자격 관리",file:"assets/preview-training.svg",summary:"교육 교재 목록과 교육 내용, 작업자별 특별특성 공정 자격 현황을 찾아봅니다."},
+        {title:"구매 검토·전자결재",file:"assets/preview-purchase.svg",summary:"계측기 구매 필요성과 사양·예산 검토 내용을 작성하고 순차 결재 현황을 확인합니다."}
       ];
       const gallery=document.getElementById("screenGallery");
       gallery.innerHTML=screens.map((s,i)=>`<a class="screen-card" href="screens/preview.html?screen=${i}" target="_blank" rel="noopener" aria-label="${s.title} 새 창에서 열기"><img src="${s.file}" alt="${s.title} 화면 미리보기"><span class="screen-copy"><span class="eyebrow">SCREEN 0${i+1}</span><h3>${s.title}</h3><p>${s.summary}</p><span class="open-hint">새 탭에서 상세 화면 보기 ↗</span></span></a>`).join("");
