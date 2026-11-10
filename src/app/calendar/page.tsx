@@ -1,0 +1,25 @@
+import Link from "next/link";
+import { ArrowLeft, ArrowRight, CalendarDays, ChevronLeft, ChevronRight, CircleAlert, Clock3, Gauge } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+import PrintButton from "@/components/print-button";
+
+export const dynamic="force-dynamic";
+type Search={year?:string;month?:string};
+export default async function CalibrationCalendar({searchParams}:{searchParams:Promise<Search>}){
+  const params=await searchParams;const today=new Date();const year=Number(params.year)||today.getFullYear();const month=Number(params.month)||today.getMonth()+1;
+  const first=new Date(year,month-1,1);const nextMonth=new Date(year,month,1);const daysInMonth=new Date(year,month,0).getDate();const start=new Date(year,month-1,1);const end=new Date(year,month,1);
+  const [events,overdue,total]=await Promise.all([
+    prisma.instrument.findMany({where:{dueDate:{gte:start,lt:end}},orderBy:{dueDate:"asc"}}),
+    prisma.instrument.findMany({where:{dueDate:{lt:today}},orderBy:{dueDate:"asc"}}),
+    prisma.instrument.count(),
+  ]);
+  const byDay=new Map<number,typeof events>();for(const event of events){const day=event.dueDate.getDate();byDay.set(day,[...(byDay.get(day)??[]),event]);}
+  const previous=new Date(year,month-2,1);const following=new Date(year,month,1);const prevHref=`/calendar?year=${previous.getFullYear()}&month=${previous.getMonth()+1}`;const nextHref=`/calendar?year=${following.getFullYear()}&month=${following.getMonth()+1}`;
+  const cells=[...Array(first.getDay()).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
+  return <main className="record-page"><header className="record-top"><Link href="/" className="back-link"><ArrowLeft size={16}/> 대시보드</Link><div className="record-actions"><PrintButton label="인쇄 미리보기 / 인쇄" icon/></div></header><section className="record-content calendar-content"><div className="page-heading"><div><span className="eyebrow">CALIBRATION SCHEDULE</span><h1>검교정 일정 달력</h1><p>계측기별 교정 예정일과 현재 상태를 월간 달력으로 확인합니다.</p></div></div>
+    <div className="calendar-summary"><div><span className="summary-icon blue"><Gauge size={18}/></span><div><small>등록 계측기</small><strong>{total}대</strong></div></div><div><span className="summary-icon amber"><Clock3 size={18}/></span><div><small>{month}월 예정</small><strong>{events.length}건</strong></div></div><div><span className="summary-icon red"><CircleAlert size={18}/></span><div><small>지난 만료</small><strong>{overdue.length}건</strong></div></div></div>
+    <section className="panel calendar-panel"><div className="calendar-head"><Link className="calendar-nav" href={prevHref} aria-label="이전 달"><ChevronLeft size={18}/></Link><h2>{year}년 {month}월</h2><Link className="calendar-nav" href={nextHref} aria-label="다음 달"><ChevronRight size={18}/></Link><Link href="/calendar" className="calendar-today">이번 달</Link></div><div className="calendar-grid"><div className="weekday sunday">일</div><div className="weekday">월</div><div className="weekday">화</div><div className="weekday">수</div><div className="weekday">목</div><div className="weekday">금</div><div className="weekday saturday">토</div>{cells.map((day,index)=><div className={`calendar-cell ${day===today.getDate()&&month===today.getMonth()+1&&year===today.getFullYear()?"today":""}`} key={`${year}-${month}-${day??`blank-${index}`}`}><span className={`calendar-day ${index%7===0?"sunday":""} ${index%7===6?"saturday":""}`}>{day??""}</span>{day&&(byDay.get(day)??[]).map(item=>{const delta=Math.ceil((item.dueDate.getTime()-today.getTime())/86400000);const status=delta<0?"expired":delta<=30?"warning":"ok";return <Link key={item.id} target="_blank" rel="opener" href={`/instruments/${item.id}`} className={`calendar-event ${status}`} title={`${item.name} · ${item.assetCode}`}><i/>{item.name}<small>{item.assetCode}</small></Link>})}</div>)}</div><div className="calendar-legend"><span><i className="dot green"/> 정상 일정</span><span><i className="dot amber"/> 30일 이내 임박</span><span><i className="dot red"/> 만료</span></div></section>
+    <section className="panel calendar-list"><div className="panel-head"><div><h2>이번 달 검교정 대상</h2><p>일정을 선택하면 해당 계측기 상세 대장이 새 창으로 열립니다.</p></div></div>{events.length?<div className="table-wrap"><table><thead><tr><th>예정일</th><th>계측기</th><th>관리번호</th><th>담당 부서</th><th>보관 위치</th><th>상태</th></tr></thead><tbody>{events.map(item=>{const d=Math.ceil((item.dueDate.getTime()-today.getTime())/86400000);return <tr key={item.id}><td>{new Intl.DateTimeFormat("ko-KR",{month:"2-digit",day:"2-digit"}).format(item.dueDate)}</td><td><Link className="table-action" target="_blank" rel="opener" href={`/instruments/${item.id}`}>{item.name} <ArrowRight size={12}/></Link></td><td className="code">{item.assetCode}</td><td>{item.department}</td><td>{item.location}</td><td><span className={`status ${d<0?"expired":d<=30?"warning":"ok"}`}><i/>{d<0?"만료":d<=30?"임박":"정상"}</span></td></tr>})}</tbody></table></div>:<div className="empty-state">이 달에 예정된 검교정이 없습니다.</div>}</section>
+    <p className="page-note"><CalendarDays size={14}/> 달력은 등록된 계측기의 다음 검교정 예정일을 기준으로 표시합니다. 검교정 이력을 저장하면 실제 완료일도 함께 누적됩니다.</p>
+  </section></main>;
+}

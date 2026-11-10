@@ -1,0 +1,718 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Instrument {
+  id             String   @id @default(cuid())
+  assetCode      String   @unique
+  barcodeNumber  String?  @unique
+  qrPayload      String?  @unique
+  name           String
+  category       String
+  manufacturer   String
+  model          String
+  serialNumber   String
+  location       String
+  department     String
+  owner          String
+  purchaseSource String   @default("")
+  purchaseDate   DateTime?
+  purchaseCost   Float?
+  usagePurpose   String   @default("")
+  measurementRange String @default("")
+  measurementUnit String @default("mm")
+  resolution     String   @default("")
+  accuracy       String   @default("")
+  specification  String   @default("")
+  calibrationIntervalMonths Int @default(12)
+  photoPath      String?
+  photoPath2     String?
+  photoPath3     String?
+  representativePhoto Int @default(1)
+  storageCondition String @default("")
+  maintenanceDate DateTime?
+  status         String   @default("정상")
+  lastCalibrated DateTime
+  dueDate        DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  calibrations   CalibrationRecord[]
+  movements      IssueTransaction[]
+  disposal       DisposalRecord?
+  purchase       PurchaseRequest?
+  documents      InstrumentDocument[]
+  grrStudies     GageRRStudy[]
+  processStudies ProcessStudy[]
+  preferredCalibrationProviderId String?
+  preferredCalibrationProvider CalibrationProvider? @relation("PreferredCalibrationProvider", fields:[preferredCalibrationProviderId], references:[id], onDelete:SetNull)
+  processQualifications ProcessQualification[]
+
+  @@index([dueDate])
+  @@index([department, status])
+}
+
+model CalibrationProcedure {
+  id                 String   @id @default(cuid())
+  documentNumber     String   @unique
+  title              String
+  instrumentCategory String
+  calibrationRoute   String   @default("자체 검교정")
+  targetInstruments  String
+  standardReference  String
+  purpose            String
+  scope              String
+  equipment          String
+  environment        String
+  method             String
+  acceptanceCriteria String
+  uncertainty        String
+  safety             String
+  steps              String
+  revision           String   @default("Rev.0")
+  status             String   @default("검토 중")
+  effectiveDate      DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  records             CalibrationRecord[]
+
+  @@index([instrumentCategory, status])
+}
+
+model CalibrationProvider {
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  accreditationNumber String
+  scope               String
+  contactName         String
+  phone               String
+  email               String
+  address             String
+  certificateExpiry   DateTime?
+  status              String   @default("확인 필요")
+  sourceUrl           String?
+  verifiedAt          DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  records             CalibrationRecord[]
+  preferredInstruments Instrument[] @relation("PreferredCalibrationProvider")
+
+  @@index([status, certificateExpiry])
+}
+
+model PurchaseRequest {
+  id            String   @id @default(cuid())
+  requestNumber String   @unique
+  itemName      String
+  category      String
+  quantity      Int      @default(1)
+  requestedBy   String
+  department    String
+  reason        String
+  estimatedCost Float?
+  approvedCost  Float?
+  actualCost    Float?
+  status        String   @default("작성 중")
+  requestedAt   DateTime @default(now())
+  receivedAt    DateTime?
+  instrumentId  String?  @unique
+  instrument    Instrument? @relation(fields:[instrumentId], references:[id], onDelete:SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model CalibrationRecord {
+  id               String   @id @default(cuid())
+  instrumentId     String
+  providerId       String?
+  procedureId      String?
+  performedAt      DateTime
+  nextDueDate      DateTime
+  result           String
+  certificateNumber String
+  certificatePath  String?
+  cost             Float?
+  notes            String   @default("")
+  instrument       Instrument @relation(fields:[instrumentId], references:[id], onDelete:Cascade)
+  provider         CalibrationProvider? @relation(fields:[providerId], references:[id], onDelete:SetNull)
+  procedure        CalibrationProcedure? @relation(fields:[procedureId], references:[id], onDelete:SetNull)
+  attachments      CalibrationAttachment[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([instrumentId,performedAt])
+}
+
+model CalibrationAttachment {
+  id         String   @id @default(cuid())
+  recordId   String
+  fileName   String
+  filePath   String
+  mediaType  String
+  uploadedAt DateTime @default(now())
+  record     CalibrationRecord @relation(fields:[recordId], references:[id], onDelete:Cascade)
+
+  @@index([recordId,uploadedAt])
+}
+
+model IssueTransaction {
+  id             String   @id @default(cuid())
+  transactionNo String   @unique
+  instrumentId   String
+  issuedTo       String
+  issuedBy       String
+  issuedAt       DateTime
+  dueBackAt      DateTime?
+  returnDepartment String   @default("")
+  returnResponsible String  @default("")
+  returnedAt     DateTime?
+  purpose        String
+  locationOut    String
+  conditionOut   String
+  conditionIn    String?
+  status         String   @default("불출 중")
+  instrument     Instrument @relation(fields:[instrumentId], references:[id], onDelete:Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([instrumentId,status])
+}
+
+model DisposalRecord {
+  id             String   @id @default(cuid())
+  instrumentId   String   @unique
+  disposalNumber String   @unique
+  disposedAt     DateTime
+  reason         String
+  approvedBy     String
+  method         String
+  bookValue      Float?
+  salvageValue   Float?
+  disposalCost   Float?
+  department     String   @default("")
+  certificatePath String?
+  status         String   @default("신청")
+  instrument     Instrument @relation(fields:[instrumentId], references:[id], onDelete:Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model AnnualBudget {
+  id         String   @id @default(cuid())
+  year       Int
+  department String   @default("전체")
+  category   String
+  amount     Float
+  note       String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([year,department,category])
+  @@index([year,department])
+}
+
+model ApprovalDocument {
+  id          String   @id @default(cuid())
+  documentNo  String   @unique
+  category    String
+  status      String   @default("임시저장")
+  requester   String
+  department  String
+  title       String
+  content     String
+  payload     String   @default("{}")
+  resubmission Int     @default(0)
+  submittedAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  steps       ApprovalStep[]
+  history     ApprovalHistory[]
+}
+
+model ApprovalStep {
+  id          String   @id @default(cuid())
+  documentId  String
+  sequence    Int
+  cycle       Int      @default(1)
+  role        String
+  actorName   String
+  status      String   @default("대기")
+  opinion     String   @default("")
+  handledAt   DateTime?
+  document    ApprovalDocument @relation(fields:[documentId], references:[id], onDelete:Cascade)
+
+  @@unique([documentId,cycle,sequence])
+  @@index([actorName,status])
+}
+
+model ApprovalHistory {
+  id          String   @id @default(cuid())
+  documentId  String
+  sequence    Int
+  actorName   String
+  action      String
+  opinion     String   @default("")
+  occurredAt  DateTime @default(now())
+  document    ApprovalDocument @relation(fields:[documentId], references:[id], onDelete:Cascade)
+
+  @@unique([documentId,sequence])
+  @@index([documentId,occurredAt])
+}
+
+model StorageLocation {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  locationType String
+  parent      String?
+  custodian   String
+  conditions  String   @default("")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CalibrationTargetType {
+  id                    String   @id @default(cuid())
+  code                  String   @unique
+  name                  String
+  category              String
+  measurementUnit       String
+  calibrationRoute      String   @default("검토 필요")
+  defaultIntervalMonths Int?
+  selfCalibrationEligible Boolean @default(false)
+  guidance              String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model ProcessStudy {
+  id             String   @id @default(cuid())
+  studyNumber    String   @unique
+  title          String
+  companyName    String   @default("")
+  productName    String   @default("")
+  modelName      String   @default("")
+  partNumber     String   @default("")
+  partName       String   @default("")
+  processName    String   @default("")
+  department     String   @default("")
+  author         String   @default("")
+  writtenAt      DateTime @default(now())
+  measurementDate DateTime @default(now())
+  equipmentName  String   @default("")
+  instrumentId   String?
+  measurementRange String @default("")
+  measurementUnit String  @default("mm")
+  sampleCount    Int      @default(0)
+  dataType       String
+  chartType      String
+  lowerSpec      Float?
+  upperSpec      Float?
+  targetValue    Float?
+  subgroupSize  Int      @default(1)
+  measurements   String
+  instrument     Instrument? @relation(fields:[instrumentId], references:[id], onDelete:SetNull)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model GageRRStudy {
+  id             String   @id @default(cuid())
+  studyNumber    String   @unique
+  title          String
+  studyType      String   @default("계량치")
+  measurementUnit String  @default("mm")
+  measurementError Float?
+  department     String   @default("")
+  studyDate      DateTime @default(now())
+  criteriaRRPercent Float @default(10)
+  criteriaPTPercent Float @default(10)
+  criteriaNdc    Int      @default(5)
+  criteriaKappa  Float    @default(0.75)
+  criteriaAgreementPercent Float @default(90)
+  instrumentId   String?
+  instrumentName String
+  data           String
+  lowerSpec      Float?
+  upperSpec      Float?
+  instrument     Instrument? @relation(fields:[instrumentId], references:[id], onDelete:SetNull)
+  processQualifications ProcessQualification[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model GageRRPlan {
+  id             String   @id @default(cuid())
+  year           Int
+  plannedDate    DateTime
+  department     String
+  instrumentId   String?
+  instrumentName String
+  studyType      String   @default("계량치")
+  title          String
+  status         String   @default("계획")
+  actualStudyId  String?
+  note           String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([year, plannedDate, department])
+}
+
+model ProcessQualification {
+  id                 String   @id @default(cuid())
+  qualificationNo    String   @unique
+  processName        String
+  productionItem     String   @default("")
+  operatorName       String   @default("")
+  operatorName2      String   @default("")
+  operatorName3      String   @default("")
+  operatorName4      String   @default("")
+  operatorName5      String   @default("")
+  operatorExperienceYears Int?
+  operatorExperienceYears2 Int?
+  operatorExperienceYears3 Int?
+  operatorExperienceYears4 Int?
+  operatorExperienceYears5 Int?
+  department         String
+  specialCharacteristic String
+  characteristicType String   @default("치수")
+  assessmentDate     DateTime
+  validUntil         DateTime?
+  requirement        String
+  acceptanceCriteria String
+  detectionMethod    String   @default("")
+  detectionSampleCount Int    @default(0)
+  detectionDefects   Int      @default(0)
+  detectionCorrect   Int      @default(0)
+  detectionMissed    Int      @default(0)
+  detectionFalseAlarm Int     @default(0)
+  detectionSheetData String   @default("")
+  method             String
+  owner              String
+  status             String   @default("검토 중")
+  grrStudyId         String?
+  instrumentId       String?
+  evidence           String   @default("")
+  certificatePath    String?
+  certificateFileName String?
+  notes              String   @default("")
+  grrStudy           GageRRStudy? @relation(fields:[grrStudyId], references:[id], onDelete:SetNull)
+  instrument         Instrument? @relation(fields:[instrumentId], references:[id], onDelete:SetNull)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([department, status, validUntil])
+}
+
+model OperatorAssessment {
+  id            String   @id @default(cuid())
+  workerName    String
+  qualification String
+  score         Float
+  targetScore   Float   @default(100)
+  assessedAt    DateTime
+  evaluator     String
+  nextReview    DateTime?
+  evidence      String   @default("")
+  createdAt     DateTime @default(now())
+
+  @@index([workerName, assessedAt])
+}
+
+model InstrumentDocument {
+  id           String   @id @default(cuid())
+  instrumentId String
+  title        String
+  documentType String
+  fileName     String
+  filePath     String
+  contentHtml  String?
+  revision     String   @default("Rev.0")
+  uploadedBy   String
+  uploadedAt   DateTime @default(now())
+  instrument   Instrument @relation(fields:[instrumentId], references:[id], onDelete:Cascade)
+
+  @@index([instrumentId,documentType])
+}
+
+model TrainingCourse {
+  id             String   @id @default(cuid())
+  courseCode     String   @unique
+  title          String
+  organizerDepartment String @default("")
+  educationManager String @default("")
+  subject        String
+  trainingReport String   @default("")
+  audience       String
+  instructor     String
+  durationHours  Float
+  trainingDate   DateTime
+  validityMonths Int      @default(12)
+  materialPath   String?
+  records        TrainingRecord[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model TrainingRecord {
+  id           String   @id @default(cuid())
+  courseId     String
+  employeeName String
+  department   String
+  result       String
+  score        Float?
+  completedAt  DateTime
+  expiresAt    DateTime?
+  evidencePath String?
+  course       TrainingCourse @relation(fields:[courseId], references:[id], onDelete:Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([employeeName,completedAt])
+}
+
+model TrainingMaterial {
+  id          String   @id @default(cuid())
+  materialNo  String   @unique @default("TM-LEGACY")
+  title       String
+  description String   @default("")
+  educationPurpose String @default("")
+  learningContent String @default("")
+  contentSummary String @default("")
+  category    String   @default("기타")
+  sourceName  String   @default("")
+  fileName    String
+  filePath    String   @unique
+  fileType    String
+  fileSize    Int
+  videoUrl    String?
+  uploadedAt  DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+/// 공통 게시판 본문. HTML 서식과 로컬 이미지 경로를 포함합니다.
+model BoardEntry {
+  id         String   @id @default(cuid())
+  boardKey   String
+  title      String
+  contentHtml String
+  createdBy  String   @default("관리자")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([boardKey, updatedAt])
+}
+
+model UserAccount {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String?  @unique
+  googleSubject String? @unique
+  profileComplete Boolean @default(true)
+  displayName  String
+  companyName  String   @default("")
+  department   String   @default("")
+  employeeNo   String?  @unique
+  phone        String   @default("")
+  passwordHash String
+  role         String   @default("관리자")
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model CapabilityProject {
+  id                 String   @id @default(cuid())
+  projectNo          String   @unique
+  name               String
+  companyName        String
+  productName        String
+  modelName          String
+  partNumber         String
+  partName           String
+  processName        String
+  equipmentNo        String
+  characteristic     String
+  measurementUnit    String
+  lsl                Float
+  usl                Float
+  targetValue        Float?
+  analysisStart      DateTime
+  analysisEnd        DateTime
+  inspector          String
+  analyst            String
+  customerCriteria   String   @default("")
+  note               String   @default("")
+  analysisType       String   @default("계량치")
+  attributeType      String   @default("불량률")
+  sampleVersion      Int      @default(1)
+  deletedAt          DateTime?
+  createdBy          String   @default("관리자")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  subgroups          CapabilitySubgroup[]
+  measurements       CapabilityMeasurement[]
+  agreements         AttributeAgreementResult[]
+  attributeQuality   AttributeQualityResult[]
+  results            CapabilityResult[]
+  reports            CapabilityReport[]
+  auditLogs          CapabilityAuditLog[]
+  relationshipStudies CorrelationStudy[]
+
+  @@index([analysisType, updatedAt])
+  @@index([partNumber, processName, analysisStart])
+}
+
+model CapabilitySubgroup {
+  id         String   @id @default(cuid())
+  projectId  String
+  subgroupNo String
+  sampleSize Int      @default(1)
+  project    CapabilityProject @relation(fields:[projectId], references:[id], onDelete:Cascade)
+  measurements CapabilityMeasurement[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([projectId, subgroupNo])
+}
+
+model CapabilityMeasurement {
+  id          String   @id @default(cuid())
+  projectId   String
+  subgroupId  String?
+  sequence    Int
+  value       Float
+  measuredAt  DateTime
+  measurer    String
+  originalValue String
+  project     CapabilityProject @relation(fields:[projectId], references:[id], onDelete:Cascade)
+  subgroup    CapabilitySubgroup? @relation(fields:[subgroupId], references:[id], onDelete:SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId, sequence])
+  @@index([projectId, measuredAt])
+}
+
+model AttributeAgreementResult {
+  id          String   @id @default(cuid())
+  projectId   String
+  sampleId    String
+  inspector   String
+  reference   String
+  judgment    String
+  round       Int      @default(1)
+  measuredAt  DateTime
+  project     CapabilityProject @relation(fields:[projectId], references:[id], onDelete:Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId, sampleId, inspector])
+}
+
+model AttributeQualityResult {
+  id             String   @id @default(cuid())
+  projectId      String
+  subgroupNo     String
+  inspectedCount Int
+  defectCount    Int
+  defectUnit      Float   @default(1)
+  measuredAt     DateTime
+  measurer       String
+  project        CapabilityProject @relation(fields:[projectId], references:[id], onDelete:Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([projectId, measuredAt])
+}
+
+model CapabilityResult {
+  id              String   @id @default(cuid())
+  projectId       String
+  analysisType    String
+  resultJson      String
+  method          String
+  dataVersion     Int
+  calculatedAt   DateTime @default(now())
+  project         CapabilityProject @relation(fields:[projectId], references:[id], onDelete:Cascade)
+
+  @@index([projectId, calculatedAt])
+}
+
+model CapabilityReport {
+  id           String   @id @default(cuid())
+  projectId    String
+  reportNumber String   @unique
+  version      Int      @default(1)
+  resultJson   String
+  generatedAt  DateTime @default(now())
+  createdBy    String
+  project      CapabilityProject @relation(fields:[projectId], references:[id], onDelete:Cascade)
+
+  @@index([projectId, generatedAt])
+}
+
+model CapabilityAuditLog {
+  id          String   @id @default(cuid())
+  projectId   String
+  targetType  String
+  targetId    String
+  action      String
+  beforeJson  String?
+  afterJson   String?
+  changedBy   String
+  changedAt   DateTime @default(now())
+  project     CapabilityProject @relation(fields:[projectId], references:[id], onDelete:Cascade)
+
+  @@index([projectId, changedAt])
+}
+
+model CapabilitySetting {
+  key         String   @id
+  value       String
+  updatedBy   String
+  updatedAt   DateTime @updatedAt
+}
+
+model CorrelationStudy {
+  id           String   @id @default(cuid())
+  studyNumber  String   @unique
+  title        String
+  projectId    String?
+  xName        String
+  xUnit        String   @default("")
+  yName        String
+  yUnit        String   @default("")
+  measuredBy   String
+  measuredAt   DateTime
+  notes        String   @default("")
+  resultJson   String?
+  project      CapabilityProject? @relation(fields:[projectId], references:[id], onDelete:SetNull)
+  points       CorrelationDataPoint[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([projectId, measuredAt])
+}
+
+model CorrelationDataPoint {
+  id         String   @id @default(cuid())
+  studyId    String
+  sequence   Int
+  xValue     Float
+  yValue     Float
+  measuredAt DateTime
+  study      CorrelationStudy @relation(fields:[studyId], references:[id], onDelete:Cascade)
+
+  @@unique([studyId, sequence])
+}
+
+

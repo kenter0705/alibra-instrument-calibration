@@ -1,0 +1,7 @@
+import {notFound} from "next/navigation";
+import {prisma} from "@/lib/prisma";
+import {deletePurchase} from "@/app/actions";
+import BoardPopupActions from "@/components/board-popup-actions";
+import PurchaseReviewEditor from "@/components/purchase-review-editor";
+export const dynamic="force-dynamic";
+export default async function PurchaseReviewDetail({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{saved?:string}>}){const {id}=await params;const {saved}=await searchParams;const x=await prisma.purchaseRequest.findUnique({where:{id}});if(!x)notFound();return <main className="record-page"><header className="record-top"><BoardPopupActions listHref="/purchases" listLabel="목록가기"/></header><section className="record-content"><div className="page-heading"><div><span className="eyebrow">PURCHASE REVIEW · {x.requestNumber}</span><h1>계측기 구매 검토서</h1><p>{x.itemName} · {x.department} · 요청 {x.requestedAt.toLocaleDateString("ko-KR")}</p></div></div>{saved&&<div className="form-success" role="status">변경 내용이 저장되었습니다.</div>}<section className="panel purchase-review-document"><PurchaseReviewEditor item={{...x,requestedAt:x.requestedAt.toISOString(),receivedAt:x.receivedAt?.toISOString()??null}}/><form action={deletePurchase} className="purchase-delete-form"><input type="hidden" name="id" value={x.id}/><button className="delete-button">검토서 삭제</button></form></section></section></main>}

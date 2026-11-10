@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">압력계 자체 검교정 장치 구성 예</title>
+  <desc id="desc">핸드펌프와 차단 밸브를 기준 압력계와 시험 압력계에 연결한 압력 비교 교정 장치의 기술 그림</desc>
+  <defs>
+    <linearGradient id="bg" x2="0" y2="1"><stop stop-color="#f9fbfe"/><stop offset="1" stop-color="#eaf1f8"/></linearGradient>
+    <linearGradient id="metal" x2="0" y2="1"><stop stop-color="#f9fcff"/><stop offset=".5" stop-color="#d9e3ed"/><stop offset="1" stop-color="#b9c8d7"/></linearGradient>
+    <linearGradient id="blue" x2="0" y2="1"><stop stop-color="#347fc7"/><stop offset="1" stop-color="#174a7c"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="9" stdDeviation="10" flood-color="#193856" flood-opacity=".16"/></filter>
+  </defs>
+  <rect width="1200" height="700" rx="22" fill="url(#bg)"/>
+  <text x="58" y="64" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#173e67">압력계 비교 검교정 장치 구성 예</text>
+  <text x="60" y="96" font-family="Arial, sans-serif" font-size="15" fill="#697e94">상승·하강 압력 점에서 기준기와 대상 계측기의 지시값을 동시에 비교합니다.</text>
+  <!-- bench -->
+  <path d="M50 562H1150" stroke="#7992a9" stroke-width="4"/><path d="M90 566v58m1020-58v58" stroke="#9aabba" stroke-width="12" stroke-linecap="round"/>
+  <!-- pump body -->
+  <g filter="url(#shadow)">
+    <rect x="130" y="410" width="238" height="140" rx="16" fill="url(#metal)" stroke="#8398ad" stroke-width="3"/>
+    <rect x="154" y="440" width="189" height="82" rx="10" fill="#eef4f9" stroke="#b6c5d3" stroke-width="2"/>
+    <rect x="197" y="467" width="106" height="27" rx="13" fill="#203f60"/>
+    <path d="M250 455v-58h102" fill="none" stroke="#284d70" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M350 394h78" stroke="#284d70" stroke-width="13" stroke-linecap="round"/>
+    <rect x="281" y="380" width="30" height="24" rx="5" fill="#deebf6" stroke="#527390" stroke-width="2"/>
+    <circle cx="171" cy="535" r="7" fill="#2c779f"/><circle cx="326" cy="535" r="7" fill="#2c779f"/>
+  </g>
+  <text x="248" y="588" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#274967">압력 발생기 / 핸드펌프</text>
+  <text x="248" y="612" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#71869b">압력 범위·매체·정격 확인</text>
+  <!-- hose from pump to manifold -->
+  <path d="M368 472H530V350H600" fill="none" stroke="#244e73" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M368 472H530V350H600" fill="none" stroke="#77a6cf" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- manifold -->
+  <g filter="url(#shadow)">
+    <rect x="575" y="326" width="342" height="50" rx="14" fill="url(#metal)" stroke="#738ba2" stroke-width="3"/>
+    <rect x="622" y="298" width="34" height="106" rx="8" fill="#c9d7e4" stroke="#647f98" stroke-width="3"/>
+    <rect x="818" y="298" width="34" height="106" rx="8" fill="#c9d7e4" stroke="#647f98" stroke-width="3"/>
+    <path d="M639 284v-30m196 30v-30" stroke="#335a7b" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="639" cy="251" r="14" fill="#f1b746" stroke="#936b1e" stroke-width="3"/>
+    <circle cx="835" cy="251" r="14" fill="#f1b746" stroke="#936b1e" stroke-width="3"/>
+    <path d="M618 351H660m154 0h42" stroke="#dce6ef" stroke-width="5"/>
+  </g>
+  <text x="746" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#274967">분기 매니폴드 · 차단 밸브</text>
+  <!-- reference gauge -->
+  <path d="M639 298V213" stroke="#355c7e" stroke-width="10"/>
+  <g filter="url(#shadow)">
+    <circle cx="639" cy="163" r="82" fill="url(#metal)" stroke="#45627d" stroke-width="7"/>
+    <circle cx="639" cy="163" r="65" fill="#fff" stroke="#b4c1cd" stroke-width="2"/>
+    <path d="M590 193A58 58 0 0 1 688 193" fill="none" stroke="#385c7c" stroke-width="5"/>
+    <path d="M602 185l-8 7m19-26-8-3m31-13v-10m27 25 8-4m-2 32 8 7" stroke="#405e7a" stroke-width="3"/>
+    <path d="M639 163l35-30" stroke="#d84d54" stroke-width="5" stroke-linecap="round"/><circle cx="639" cy="163" r="7" fill="#244968"/>
+    <text x="639" y="214" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#244968">기준기</text>
+  </g>
+  <text x="639" y="276" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#28608f">유효 교정 성적서 확인</text>
+  <!-- DUT gauge -->
+  <path d="M835 298V213" stroke="#355c7e" stroke-width="10"/>
+  <g filter="url(#shadow)">
+    <circle cx="835" cy="163" r="82" fill="url(#metal)" stroke="#45627d" stroke-width="7"/>
+    <circle cx="835" cy="163" r="65" fill="#fff" stroke="#b4c1cd" stroke-width="2"/>
+    <path d="M786 193A58 58 0 0 1 884 193" fill="none" stroke="#385c7c" stroke-width="5"/>
+    <path d="M798 185l-8 7m19-26-8-3m31-13v-10m27 25 8-4m-2 32 8 7" stroke="#405e7a" stroke-width="3"/>
+    <path d="M835 163l-27-41" stroke="#d84d54" stroke-width="5" stroke-linecap="round"/><circle cx="835" cy="163" r="7" fill="#244968"/>
+    <text x="835" y="214" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#244968">대상 계측기 (DUT)</text>
+  </g>
+  <text x="835" y="276" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#28608f">압력계 · 압력 트랜스미터</text>
+  <!-- bottom note -->
+  <rect x="948" y="341" width="205" height="156" rx="12" fill="#fff" stroke="#dae4ee" stroke-width="2"/>
+  <text x="971" y="375" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#173e67">측정 순서</text>
+  <text x="971" y="406" font-family="Arial, sans-serif" font-size="12" fill="#586f87">1. 안정화·영점 확인</text>
+  <text x="971" y="432" font-family="Arial, sans-serif" font-size="12" fill="#586f87">2. 단계별 상승 측정</text>
+  <text x="971" y="458" font-family="Arial, sans-serif" font-size="12" fill="#586f87">3. 하강·반복 측정</text>
+  <text x="971" y="484" font-family="Arial, sans-serif" font-size="12" fill="#586f87">4. 오차·불확도 판정</text>
+  <rect x="50" y="648" width="1100" height="29" rx="6" fill="#e7eff7"/>
+  <text x="70" y="668" font-family="Arial, sans-serif" font-size="11" fill="#60768c">장치 개념도 · 실제 작업은 기기 범위, 압력 매체, 제조사 지침, 기준기 불확도와 승인된 사내 절차에 맞춰 수행하십시오.</text>
+</svg>

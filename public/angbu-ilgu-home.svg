@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 430" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">앙부일구 해시계 일러스트</title>
+  <desc id="desc">돌 바닥 위 받침대에 놓인 청동빛 반구형 오목 해시계와 내부 눈금 및 그림자 막대</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0.9" y2="1"><stop stop-color="#F7FAFD"/><stop offset="1" stop-color="#DCE7F0"/></linearGradient>
+    <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#D7D9D4"/><stop offset="1" stop-color="#AEB6B4"/></linearGradient>
+    <linearGradient id="bronze" x1=".18" y1=".08" x2=".86" y2=".95"><stop stop-color="#D8D2B8"/><stop offset=".28" stop-color="#77796D"/><stop offset=".58" stop-color="#353D3D"/><stop offset=".82" stop-color="#858273"/><stop offset="1" stop-color="#252E31"/></linearGradient>
+    <radialGradient id="bowl" cx=".5" cy=".05" r=".9"><stop stop-color="#78817D"/><stop offset=".48" stop-color="#3B4545"/><stop offset="1" stop-color="#182527"/></radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#E3DAB8"/><stop offset=".35" stop-color="#6E7167"/><stop offset=".62" stop-color="#C5B889"/><stop offset="1" stop-color="#555D59"/></linearGradient>
+    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F1D795"/><stop offset=".48" stop-color="#B58E42"/><stop offset="1" stop-color="#70552E"/></linearGradient>
+    <filter id="shadow" x="100" y="110" width="1000" height="310" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="15"/></filter>
+    <clipPath id="inside"><ellipse cx="610" cy="201" rx="391" ry="112"/></clipPath>
+  </defs>
+  <rect width="1200" height="430" rx="24" fill="url(#sky)"/>
+  <path d="M0 284 1200 256v174H0z" fill="url(#stone)"/>
+  <path d="m0 306 1200-27M0 358l1200-28M180 283l-24 147m244-153-12 153m255-159 2 159m249-165 16 165m225-171 28 171" stroke="#87918F" stroke-opacity=".28" stroke-width="2"/>
+  <!-- quiet blue celestial dial motif, echoing the supplied reference -->
+  <g transform="translate(1010 105)" stroke="#4C78AD" stroke-opacity=".18" fill="none">
+    <circle r="76" stroke-width="2"/><circle r="61" stroke-width="1.5" stroke-dasharray="2 7"/>
+    <path d="M0-94v22m0 144v22M-94 0h22M72 0h22M-66-66l16 16m100 100 16 16m0-132L50-50m-100 100-16 16" stroke-width="2"/>
+    <path d="m0-60 8 50 50 10-50 8-8 52-8-52-50-8 50-10z" fill="#6B95C1" fill-opacity=".1" stroke-width="1.5"/>
+  </g>
+  <path d="M146 325c140-37 305-48 473-47 186 1 354 17 435 48 21 8 20 20-2 27-112 35-719 38-887 6-34-7-46-22-19-34Z" fill="#1B2D3A" opacity=".22" filter="url(#shadow)"/>
+  <!-- carved support feet -->
+  <g stroke="#343D3D" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m312 248-18 80q-3 12-22 19l-24 9q-12 5-3 14 18 15 64 8l33-12 13-76m433-50 20 77q3 12 22 19l24 9q12 5 3 14-18 15-64 8l-33-12-13-76" fill="url(#bronze)"/>
+    <path d="m494 269-4 67q-1 15-17 23l-18 9q-11 6-2 13 17 13 52 7l30-10 7-83m240-27 4 68q1 15 17 23l18 9q11 6 2 13-17 13-52 7l-30-10-7-83" fill="url(#bronze)"/>
+  </g>
+  <g fill="none" stroke="#C3B88E" stroke-opacity=".8" stroke-width="3">
+    <path d="M273 341q16 10 39 0m-36 16q19 9 40-1m151-11q16 9 33 0m-30 15q18 8 38-1m289-12q16 9 33 0m-30 15q18 8 38-1m130-22q16 10 39 0m-36 16q19 9 40-1"/>
+    <path d="m297 294 28 8m-34 20 31 8m176-39 27 7m-31 21 28 8m263-36 27 7m-24 21 28 8m173-39 28 8m-24 20 31 8"/>
+  </g>
+  <!-- bronze body and circular lower collar -->
+  <path d="M206 193c8 69 31 117 82 143 68 34 561 34 641-2 50-23 73-73 84-139l-46-7c-18 62-42 90-87 105-94 31-447 31-543 0-43-14-67-43-84-102z" fill="url(#bronze)" stroke="#303A39" stroke-width="5"/>
+  <ellipse cx="610" cy="196" rx="408" ry="132" fill="url(#rim)" stroke="#3C4543" stroke-width="9"/>
+  <ellipse cx="610" cy="194" rx="391" ry="115" fill="url(#bowl)" stroke="#C6B98F" stroke-opacity=".72" stroke-width="3"/>
+  <!-- engraved latitude/longitude lines on the concave bowl -->
+  <g clip-path="url(#inside)" stroke="#C0B995" stroke-opacity=".36" fill="none">
+    <path d="M202 201h816M221 176h778M246 153h728M283 131h654M333 111h554M392 94h436M463 80h294M540 72h140" stroke-width="1.5"/>
+    <path d="M610 81v239M520 87q-54 99 0 206M700 87q54 99 0 206M438 101q-91 93 0 178M782 101q91 93 0 178M361 121q-119 78 0 138M859 121q119 78 0 138M292 146q-139 50 0 88M928 146q139 50 0 88" stroke-width="1.4"/>
+    <path d="M262 185q348-77 696 0M262 210q348 77 696 0" stroke="#D6CDA8" stroke-opacity=".25" stroke-width="1"/>
+  </g>
+  <!-- central sighting gnomon and its shadow -->
+  <path d="m610 191 127 72-134 19-49-28z" fill="#0F1C20" opacity=".44"/>
+  <path d="m610 190 116 76-131-16-26-33z" fill="url(#brass)" stroke="#E8D89E" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="m610 190 2 72" stroke="#F6E8B7" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="610" cy="193" r="8" fill="#E5D39A" stroke="#5F563D" stroke-width="3"/>
+  <!-- tick marks on the inner rim -->
+  <g stroke="#E4D7AC" stroke-width="2" stroke-linecap="round" opacity=".92">
+    <path d="m229 195 13 1m8-28 12 4m14-30 11 6m24-29 9 8m38-28 7 10m54-20 4 12m66-9 1 13m69-2-2 13m72-1-1 13m71-12-3 13m69-19-6 12m63-34-9 10m51 0-10 8m40 24-12 6m26 26-13 3m-2 31 13-1"/>
+  </g>
+  <path d="M232 211c72 112 673 127 756 0" stroke="#E9DDAE" stroke-opacity=".45" stroke-width="3"/>
+  <ellipse cx="610" cy="327" rx="269" ry="20" fill="#1F2828" opacity=".42"/>
+  <path d="M366 322c65 28 422 30 489-1l-14 18c-70 34-389 33-461 0z" fill="url(#rim)" stroke="#303A39" stroke-width="4"/>
+  <path d="M388 330c85 21 356 23 442-1" stroke="#E3D7AB" stroke-opacity=".65" stroke-width="3"/>
+</svg>

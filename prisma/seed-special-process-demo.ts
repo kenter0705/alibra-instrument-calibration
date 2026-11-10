@@ -1,0 +1,30 @@
+import { prisma } from "../src/lib/prisma";
+
+const assessmentDate=new Date("2026-11-09T00:00:00");
+const validUntil=new Date("2027-11-08T00:00:00");
+const actuals=["양품","불량","양품","불량","양품"] as const;
+
+async function main(){
+ for(let worker=1;worker<=5;worker++){
+  const sheet=actuals.map((actual,index)=>{
+   const results=Array.from({length:5},(_,operator)=>{
+    if(operator!==0)return "";
+    if(actual==="양품")return "0000000000";
+    const misses=Math.min(3,Math.floor((worker-1)/2));
+    return "0".repeat(misses)+"1".repeat(10-misses);
+   });
+   return {sample:index+1,actual,results};
+  });
+  const qualificationNo=`EXAMPLE-SPQ-2026-${String(worker).padStart(3,"0")}`;
+  await prisma.processQualification.upsert({where:{qualificationNo},create:{qualificationNo,department:"생산팀",specialCharacteristic:"수밀 누설량",characteristicType:"압력·누설",processName:"수밀검사 공정 (리크검사)",productionItem:"플라스틱 주유관",operatorName:`가상 작업자 ${worker}`,operatorExperienceYears:worker+1,assessmentDate,validUntil,requirement:"예시 데이터 · 승인된 작업표준에 따라 플라스틱 주유관의 누설 여부를 검사한다.",acceptanceCriteria:"예시 판정기준 · 고객 도면 및 승인된 사내 검사기준에서 허용 누설량을 확인한다.",detectionMethod:"양품·불량 기준 시료 5개를 작업자별 10회 반복 판정",detectionSampleCount:50,detectionDefects:20,detectionCorrect:20-Math.min(3,Math.floor((worker-1)/2))*2,detectionMissed:Math.min(3,Math.floor((worker-1)/2))*2,detectionFalseAlarm:0,detectionSheetData:JSON.stringify(sheet),method:"누설 시험기 영점·기준압 확인 후 치구 체결, 가압, 안정화, 누설값 판독 및 결과 기록",owner:"예시 평가자",status:"예시 데이터",evidence:"가상 검출력 평가 시트",notes:"예시 데이터 · 가상 작업자 · 실제 자격 인정 또는 고객 승인 자료가 아님"},update:{department:"생산팀",specialCharacteristic:"수밀 누설량",characteristicType:"압력·누설",processName:"수밀검사 공정 (리크검사)",productionItem:"플라스틱 주유관",operatorName:`가상 작업자 ${worker}`,operatorExperienceYears:worker+1,assessmentDate,validUntil,status:"예시 데이터",detectionSheetData:JSON.stringify(sheet),notes:"예시 데이터 · 가상 작업자 · 실제 자격 인정 또는 고객 승인 자료가 아님"}});
+ }
+ await prisma.trainingMaterial.upsert({where:{filePath:"/training/spc-training-2026.pdf"},create:{materialNo:"TM-2026-0001",title:"통계적 공정관리(SPC) 강의자료",description:"업로드된 SPC 강의 PDF · 이론 교육과 QC 7가지 도구 실습 참고자료",educationPurpose:"계량·계수형 공정 데이터를 올바른 통계기법으로 분석하고 현장 개선에 적용한다.",learningContent:"관리도 데이터 유형 선택, X̄-R 및 I-MR 관리도, 계수형 p·np·c·u 관리도, 공정능력 Cp/Cpk·Pp/Ppk, QC 7가지 도구의 입력과 해석을 이론과 실습으로 학습한다.",contentSummary:"규격한계와 관리한계를 구별하고, 산포의 안정성을 먼저 확인한 뒤 능력과 불량 원인을 분석한다. 교육 예시 데이터와 실제 현장 데이터는 구분해 기록한다.",fileName:"강의자료_통계적 공정관리(SPC).pdf",filePath:"/training/spc-training-2026.pdf",fileType:"PDF",fileSize:8328597},update:{title:"통계적 공정관리(SPC) 강의자료",description:"업로드된 SPC 강의 PDF · 이론 교육과 QC 7가지 도구 실습 참고자료",educationPurpose:"계량·계수형 공정 데이터를 올바른 통계기법으로 분석하고 현장 개선에 적용한다.",learningContent:"관리도 데이터 유형 선택, X̄-R 및 I-MR 관리도, 계수형 p·np·c·u 관리도, 공정능력 Cp/Cpk·Pp/Ppk, QC 7가지 도구의 입력과 해석을 이론과 실습으로 학습한다.",contentSummary:"규격한계와 관리한계를 구별하고, 산포의 안정성을 먼저 확인한 뒤 능력과 불량 원인을 분석한다."}});
+ await prisma.trainingMaterial.upsert({where:{filePath:"/training/moisture-meter-guide.html"},create:{materialNo:"TM-2026-0002",title:"수분 측정기 사용 방법",description:"수분 측정 전 준비부터 기록·보관까지의 공통 작업 안내서. 기기별 제조사 설명서와 승인된 시험법을 우선 적용합니다.",educationPurpose:"작업자가 수분 측정기의 측정 원리와 기기별 제한을 이해하고, 시료 준비·측정·기록을 일관되게 수행하도록 교육한다.",learningContent:"1) 측정 대상과 시험법, 단위, 허용범위를 확인한다. 2) 기기 식별번호, 교정 유효상태, 점검/표준물질 결과를 확인한다. 3) 시료를 대표성 있게 채취하고 온도·보관시간·전처리 조건을 기록한다. 4) 휴대형 핀/핀리스 수분계는 재료 종류·밀도·온도 보정 설정을 확인하고, 정해진 위치와 방향·접촉 압력으로 반복 측정한다. 5) 수분 분석기(건조감량법)는 제조사 시험법에 지정된 시료량·팬·온도·종료조건을 입력하고 안전 주의사항에 따라 가열한다. 6) 안정된 값을 지정 반복수만큼 측정해 평균과 편차를 기록하고 기준 이탈 시 재측정 및 원인조사를 한다. 7) 사용 후 센서/팬을 세척·건조하고 장비를 보관한다.",contentSummary:"기기 종류(핀식·핀리스·건조감량식)와 재료별 시험법이 다르므로 모델 설명서의 시료량, 온도, 보정값, 반복수, 판정기준을 먼저 확인한다. 시료 식별, 측정 위치·환경, 원자료, 단위, 장비번호와 교정상태를 함께 기록한다. 본 안내는 교육용이며 승인 시험절차를 대체하지 않는다.",fileName:"수분_측정기_사용_방법.html",filePath:"/training/moisture-meter-guide.html",fileType:"GUIDE",fileSize:0},update:{title:"수분 측정기 사용 방법",description:"수분 측정 전 준비부터 기록·보관까지의 공통 작업 안내서. 기기별 제조사 설명서와 승인된 시험법을 우선 적용합니다.",educationPurpose:"작업자가 수분 측정기의 측정 원리와 기기별 제한을 이해하고, 시료 준비·측정·기록을 일관되게 수행하도록 교육한다.",learningContent:"1) 측정 대상과 시험법, 단위, 허용범위를 확인한다. 2) 기기 식별번호, 교정 유효상태, 점검/표준물질 결과를 확인한다. 3) 시료를 대표성 있게 채취하고 온도·보관시간·전처리 조건을 기록한다. 4) 휴대형 핀/핀리스 수분계는 재료 종류·밀도·온도 보정 설정을 확인하고, 정해진 위치와 방향·접촉 압력으로 반복 측정한다. 5) 수분 분석기(건조감량법)는 제조사 시험법에 지정된 시료량·팬·온도·종료조건을 입력하고 안전 주의사항에 따라 가열한다. 6) 안정된 값을 지정 반복수만큼 측정해 평균과 편차를 기록하고 기준 이탈 시 재측정 및 원인조사를 한다. 7) 사용 후 센서/팬을 세척·건조하고 장비를 보관한다.",contentSummary:"기기 종류(핀식·핀리스·건조감량식)와 재료별 시험법이 다르므로 모델 설명서의 시료량, 온도, 보정값, 반복수, 판정기준을 먼저 확인한다. 시료 식별, 측정 위치·환경, 원자료, 단위, 장비번호와 교정상태를 함께 기록한다. 본 안내는 교육용이며 승인 시험절차를 대체하지 않는다."}});
+ const inspectionGuides=[
+  {no:"TM-2026-0003",title:"육안검사 기준",description:"검사 환경·관찰 방법·기록과 판정 보류 절차 교육 안내",purpose:"검사자가 외관 결함을 동일한 문서 기준으로 판정하고 기록하도록 한다.",content:"최신 승인 기준 확인, 제품 식별 및 표본 확인, 지정 조명·거리·각도·관찰시간 설정, 제품의 정해진 면과 순서 검사, 결함 코드·위치·크기·등급 비교, 한도견본 활용, 애매한 판정의 보류·격리·상급자 판정, 검사 수량과 결함별 결과 기록을 교육한다. 환경 수치는 고객 요구와 검증된 사내 표준에서 가져온다.",summary:"승인 도면·고객 규격·검사표와 한도견본이 판정 기준이다. 조도·거리·관찰시간을 임의의 보편값으로 정하지 않으며, 불일치 시 보류 후 지정 판정자에게 이관한다.",file:"/training/visual-inspection-guide.html",name:"육안검사_기준_교육안내.html"},
+  {no:"TM-2026-0004",title:"외관검사 기준",description:"제품 외관 결함 분류·한도견본·불량 격리와 재검 교육 안내",purpose:"제품별 외관 결함 정의와 승인 한도를 바탕으로 검사와 부적합 처리를 일관되게 수행한다.",content:"품번·로트·기준 개정 확인, 결함 코드·이름·위치·크기 기준과 등급 확인, 승인된 샘플링 계획 확인, 제품을 정해진 방향으로 검사, 한도견본과 비교, 불명확한 판정 보류·격리, 양품/불량 및 결함 유형별 수량 기록, 불량품 식별, 시정 후 재검·승인 기록을 교육한다. 검사자 간 판정 일치도는 대표 시료의 독립 판정 비교로 확인한다.",summary:"균열·찍힘·흠집·변색·오염 등 결함의 허용값은 제품·고객별로 다르다. 승인 문서의 결함표와 샘플링 기준을 적용하며, 임의 기준은 사용하지 않는다.",file:"/training/exterior-inspection-guide.html",name:"외관검사_기준_교육안내.html"}
+ ];
+ for(const g of inspectionGuides){await prisma.trainingMaterial.upsert({where:{filePath:g.file},create:{materialNo:g.no,title:g.title,description:g.description,educationPurpose:g.purpose,learningContent:g.content,contentSummary:g.summary,fileName:g.name,filePath:g.file,fileType:"GUIDE",fileSize:0},update:{title:g.title,description:g.description,educationPurpose:g.purpose,learningContent:g.content,contentSummary:g.summary}})}
+ console.log("가상 작업자 자격인정 예시 및 교육 교재 저장 완료");
+}
+main().finally(()=>prisma.$disconnect());

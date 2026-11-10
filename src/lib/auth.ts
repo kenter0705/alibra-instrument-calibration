@@ -1,0 +1,6 @@
+import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+const sessionSecret=()=>process.env.AUTH_SECRET||"";
+export function hashPassword(password:string){const salt=randomBytes(16).toString("hex");const hash=scryptSync(password,salt,64).toString("hex");return `${salt}:${hash}`;}
+export function verifyPassword(password:string,stored:string){const [salt,expected]=stored.split(":");if(!salt||!expected)return false;const got=scryptSync(password,salt,64);const want=Buffer.from(expected,"hex");return got.length===want.length&&timingSafeEqual(got,want);}
+export function makeSession(userId:string){const exp=Date.now()+8*60*60*1000;const payload=`${userId}.${exp}`;const sig=createHmac("sha256",sessionSecret()).update(payload).digest("base64url");return `${payload}.${sig}`;}
+export function validSession(token:string){const [id,expRaw,sig]=token.split(".");if(!id||!expRaw||!sig||!sessionSecret())return false;const exp=Number(expRaw);if(!Number.isFinite(exp)||exp<Date.now())return false;const expected=createHmac("sha256",sessionSecret()).update(`${id}.${expRaw}`).digest();let actual:Buffer;try{actual=Buffer.from(sig,"base64url")}catch{return false}return expected.length===actual.length&&timingSafeEqual(expected,actual);}
