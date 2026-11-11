@@ -68,7 +68,7 @@ export async function saveProcessQualification(form:FormData){
   if(experiences.some(x=>x!==null&&(!Number.isInteger(x)||x<0)))throw new Error("작업 경력은 0 이상의 정수로 입력해 주세요.");
   if(id)await prisma.processQualification.update({where:{id},data});else await prisma.processQualification.create({data});
   if(certificatePath&&previous?.certificatePath?.startsWith("/qualification-certificates/"))await unlink(path.join(certificateDir,path.basename(previous.certificatePath))).catch(()=>{});
-  revalidatePath("/special-process");if(form.get("popupCreate")==="1")redirect("/special-process?new=1&saved=1");
+  revalidatePath("/special-process");const savedAt=Date.now();if(form.get("popupCreate")==="1")redirect(`/special-process?new=1&saved=${savedAt}`);if(form.get("popupEdit")==="1"&&id)redirect(`/special-process?edit=${encodeURIComponent(id)}&saved=${savedAt}`);
 }
 export async function deleteProcessQualification(form:FormData){const id=String(form.get("id")||"");if(id)await prisma.processQualification.delete({where:{id}});revalidatePath("/special-process");}
 

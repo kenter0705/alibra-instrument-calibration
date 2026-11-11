@@ -59,5 +59,7 @@ try {
   Write-Output "SHA-256: $hash"
   Write-Output 'Payload contains .calibra-build, package version, and public UI assets only.'
 } finally {
+  $resolvedStage = [IO.Path]::GetFullPath($stage)
+  if (-not $resolvedStage.StartsWith([IO.Path]::GetFullPath($downloads) + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid staging path.' }
   Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue
 }
