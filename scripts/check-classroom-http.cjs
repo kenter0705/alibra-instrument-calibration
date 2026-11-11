@@ -50,7 +50,7 @@ async function run() {
   const originalPath = path.join(qa, 'files/education-datasets', original.id + '.json');
   const before = await fs.readFile(originalPath);
   const pageRequests = await Promise.all(cookies.map(cookie => request('/shared-data', cookie)));
-  pageRequests.forEach(response => assert.equal(response.status, 200));
+  await Promise.all(pageRequests.map(async response => { assert.equal(response.status, 200); assert.ok((await response.text()).includes('공동 데이터실')); }));
   const reads = await Promise.all(cookies.map(cookie => request(`/api/education-data?id=${original.id}`, cookie)));
   for (const response of reads) { assert.equal(response.status, 200); assert.equal((await response.json()).id, original.id); }
   const timings = [];
@@ -67,7 +67,7 @@ async function run() {
   assert.deepEqual(await fs.readFile(path.join(qa, 'files/education-datasets/original-files', original.originalFile)), originalBytes);
   assert.equal((await request('/api/education-data')).status, 401);
   assert.equal((await request('/api/network-settings', cookies[1])).status, 403);
-  const network = await request('/api/network-settings', cookies[0]); assert.equal(network.status, 200);
+  const network = await request('/api/network-settings', cookies[0]); assert.equal(network.status, 200); assert.equal((await network.json()).supported, true);
   assert.equal((await request('/api/network-settings', cookies[1], { method: 'POST', headers: { Origin: base, 'Content-Type': 'application/json' }, body: '{"enabled":true}' })).status, 403);
   assert.equal((await request('/api/education-data', cookies[0], { method: 'POST', headers: { Origin: 'http://wrong.invalid', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
   assert.equal((await request('/api/education-data', cookies[0], { method: 'DELETE' })).status, 405);
@@ -75,8 +75,13 @@ async function run() {
   assert.equal((await request('/api/education-data', cookies[0], { method: 'POST', headers: { Origin: base, 'Content-Type': 'application/json' }, body: JSON.stringify(invalid) })).status, 400);
   assert.equal((await request('/api/network-settings', cookies[0], { method: 'POST', headers: { Origin: base, 'Content-Type': 'application/json' }, body: '{"enabled":true}' })).status, 200);
   assert.equal(JSON.parse(await fs.readFile(path.join(qa, 'network-settings.json'), 'utf8')).enabled, true);
+  const ExcelJS = require('exceljs'); const workbook = new ExcelJS.Workbook(); const worksheet = workbook.addWorksheet('교육'); worksheet.addRows([['검사수량', '불량품수'], [100, 2], [100, 3]]);
+  const excelForm = new FormData(); excelForm.set('chart', 'np'); excelForm.set('file', new File([await workbook.xlsx.writeBuffer()], 'attribute.xlsx'));
+  const excelResponse = await request('/api/education-data/import', cookies[0], { method: 'POST', headers: { Origin: base }, body: excelForm }); assert.equal(excelResponse.status, 201, await excelResponse.clone().text()); assert.deepEqual((await excelResponse.json()).rows, [['100', '2'], ['100', '3']]);
+  const jsonForm = new FormData(); jsonForm.set('file', new File([JSON.stringify({ chart: 'scatter', columns: ['X', 'Y'], rows: [['1', '2'], ['2', '4']] })], 'paired.json'));
+  const jsonResponse = await request('/api/education-data/import', cookies[0], { method: 'POST', headers: { Origin: base }, body: jsonForm }); assert.equal(jsonResponse.status, 201, await jsonResponse.clone().text()); assert.equal((await jsonResponse.json()).chart, 'scatter');
   timings.sort((a, b) => a - b);
-  const report = { users: 25, loginMs, saveP95Ms: Math.round(timings[23]), saveMaxMs: Math.round(timings[24]), totalMs: Math.round(performance.now() - started), checks: ['25 distinct account logins', '25 shared-page requests', '25 original-data loads', '25 concurrent Save As writes with distinct authors', 'original dataset and original upload bytes unchanged', 'unauthenticated, non-admin, cross-origin, delete and invalid-data requests rejected', 'admin sharing setting persisted only in test directory'] };
+  const report = { users: 25, loginMs, saveP95Ms: Math.round(timings[23]), saveMaxMs: Math.round(timings[24]), totalMs: Math.round(performance.now() - started), checks: ['25 distinct account logins', '25 shared-page requests', '25 original-data loads', '25 concurrent Save As writes with distinct authors', 'original dataset and original upload bytes unchanged', 'CSV, XLSX count data and JSON paired data imported correctly', 'unauthenticated, non-admin, cross-origin, delete and invalid-data requests rejected', 'admin sharing setting persisted only in test directory'] };
   await fs.writeFile(path.join(root, '.calibra-classroom-qa-report.json'), JSON.stringify(report, null, 2)); console.log(JSON.stringify(report));
 }
 (process.argv.includes('--initialize') ? initialize() : run()).catch(error => { console.error(error); process.exitCode = 1; });
