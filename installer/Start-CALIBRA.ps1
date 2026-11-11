@@ -8,6 +8,13 @@ $nextCli = Join-Path $appRoot 'node_modules\next\dist\bin\next'
 $dataRoot = Join-Path $env:LOCALAPPDATA 'CALIBRA'
 $secretFile = Join-Path $dataRoot 'auth-secret.txt'
 $instanceFile = Join-Path $dataRoot 'server-instance.json'
+$lanEnabled = $false
+$networkSettings = Join-Path $dataRoot 'network-settings.json'
+if (Test-Path -LiteralPath $networkSettings) {
+  try { $lanEnabled = (Get-Content -LiteralPath $networkSettings -Raw | ConvertFrom-Json).enabled -eq $true } catch { }
+}
+$listenHost = if ($lanEnabled) { '0.0.0.0' } else { '127.0.0.1' }
+$env:CALIBRA_LAN_ENABLED = if ($lanEnabled) { 'true' } else { 'false' }
 $updater = Join-Path $installRoot 'Update-CALIBRA.ps1'
 $ErrorActionPreference = 'Continue'
 if (Test-Path -LiteralPath $updater) {
@@ -94,7 +101,7 @@ if (Test-Path $instanceFile) {
     $process = Get-CimInstance Win32_Process -Filter "ProcessId = $serverPid" -ErrorAction Stop
     $owned = $process.ExecutablePath -and ([IO.Path]::GetFullPath($process.ExecutablePath) -ieq [IO.Path]::GetFullPath($node)) -and $process.CommandLine.Contains($nextCli)
     if ($owned -and (Test-PortInUse $candidatePort)) {
-      if ($instance.buildId -eq $buildId -and (Test-CalibraServer $candidatePort $buildId)) { $port = $candidatePort }
+      if ($instance.buildId -eq $buildId -and ([bool]$instance.lanEnabled) -eq $lanEnabled -and (Test-CalibraServer $candidatePort $buildId)) { $port = $candidatePort }
       else { Stop-Process -Id $serverPid -Force; Start-Sleep -Milliseconds 500 }
     }
   } catch { $port = $null }
@@ -104,12 +111,12 @@ if ($null -eq $port) {
   foreach ($candidate in 3000..3010) {
     if (Test-PortInUse $candidate) { continue }
     $env:PORT = "$candidate"
-    $env:HOSTNAME = '127.0.0.1'
+    $env:HOSTNAME = $listenHost
     New-Item -ItemType Directory -Force -Path $dataRoot | Out-Null
     $outLog = Join-Path $dataRoot "server-$candidate.out.log"
     $errLog = Join-Path $dataRoot "server-$candidate.err.log"
     $server = Start-Process -FilePath $node `
-      -ArgumentList @($nextCli, 'start', '--hostname', '127.0.0.1', '--port', "$candidate") `
+      -ArgumentList @($nextCli, 'start', '--hostname', $listenHost, '--port', "$candidate") `
       -WorkingDirectory $appRoot -WindowStyle Hidden -PassThru `
       -RedirectStandardOutput $outLog -RedirectStandardError $errLog
     $ready = $false
@@ -121,7 +128,7 @@ if ($null -eq $port) {
     }
     if ($ready) {
       $port = $candidate
-      @{ pid = $server.Id; port = $port; buildId = $buildId } | ConvertTo-Json | Set-Content -LiteralPath $instanceFile -Encoding ASCII
+      @{ pid = $server.Id; port = $port; buildId = $buildId; lanEnabled = $lanEnabled } | ConvertTo-Json | Set-Content -LiteralPath $instanceFile -Encoding ASCII
       break
     }
   }

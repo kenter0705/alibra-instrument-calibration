@@ -7,7 +7,8 @@ export function middleware(request: NextRequest) {
   if (process.env.CALIBRA_PREVIEW_MODE === "true") return NextResponse.next();
 
   const path = request.nextUrl.pathname;
-  const publicRoute = path === "/login" || path === "/signup" ||
+  const authPage = path === "/login" || path === "/signup";
+  const publicRoute = authPage || path === "/multi-user" || path === "/api/health" || path === "/api/network-settings" || path === "/api/education-data" || path.startsWith("/api/education-data/") ||
     path === "/api/auth/password" ||
     path === "/api/auth/google" || path === "/api/auth/google/callback";
   const token = request.cookies.get(COOKIE)?.value;
@@ -18,7 +19,7 @@ export function middleware(request: NextRequest) {
     url.searchParams.set("next", path);
     return NextResponse.redirect(url);
   }
-  if (authenticated && publicRoute) return NextResponse.redirect(new URL("/", request.url));
+  if (authenticated && authPage) return NextResponse.redirect(new URL("/", request.url));
   return NextResponse.next();
 }
 

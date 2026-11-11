@@ -21,6 +21,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {withdrawn && <div className="signup-success" role="status"><strong>탈퇴 처리가 완료되었습니다.</strong><span>계정 접속을 중지했습니다. 기존 업무 기록은 보존되어 있습니다.</span></div>}
         {error && <div className="auth-error">{decodeURIComponent(error)}</div>}
         <LoginForm />
+        <div className="auth-shared-links"><Link href="/multi-user" className="secondary-button">다수 사용하기 · 서버 IP 등록</Link></div>
         <div className="auth-divider">또는 Google 계정으로 접속</div>
         <a className="google-login-button" href="/api/auth/google?login_hint=kenter6746060%40gmail.com"><b>G</b><LogIn size={16} /> kenter6746060@gmail.com 으로 Google 로그인</a>
         {!googleReady && <div className="google-setup-note"><MailCheck size={18} /><span>이 PC 앱에 Google OAuth 클라이언트 설정이 연결되지 않았습니다. 계정의 승인을 다시 받을 문제가 아니라 앱 연결 설정 문제입니다.</span></div>}
