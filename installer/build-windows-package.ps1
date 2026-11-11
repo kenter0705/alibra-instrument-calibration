@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = 'Stop'
+$ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $sourceRoot = if ($env:CALIBRA_SOURCE_ROOT) { (Resolve-Path -LiteralPath $env:CALIBRA_SOURCE_ROOT).Path } else { $projectRoot }
 $legacyZip = Join-Path $projectRoot 'public\downloads\CALIBRA-Windows.zip'
@@ -89,6 +89,10 @@ CALIBRA Windows 설치 패키지 v$version
 3. 설치가 끝나면 바탕화면 CALIBRA 바로가기로 홈 화면을 엽니다.
 
 이 패키지에는 앱 본체, Node.js 실행 환경, 필수 모듈이 포함되어 있습니다. 설치가 끝난 뒤 앱을 실행할 때 공개 웹사이트나 인터넷 연결은 필요하지 않습니다. 앱은 이 PC 안에서 로컬로 실행됩니다.
+
+공동 교육 사용: 서버 PC에서 관리자 로그인 → 다수 사용하기 → 사내망 접속 허용 저장 → CALIBRA 바로가기 다시 실행 순서로 설정합니다. 다른 PC와 같은 Wi-Fi의 휴대폰은 서버 IP:포트로 접속하고 각자의 승인 계정으로 로그인하세요. 서버 PC는 수업 중 켜 두세요.
+
+원본 데이터는 공동 데이터실에서 읽기 전용으로 보관합니다. 데이터 불러오기 → 사본으로 수정 → 다른 이름으로 저장을 사용하면 작성자·시각과 함께 새 수정본이 생깁니다. CSV·XLSX·JSON, 그래프별 계량치·계수치 양식을 지원합니다. 25명 규모 수업 전에 접속과 동시 저장을 점검하세요.
 
 Google 이메일 로그인, YouTube 재생, KOLAS 공식 페이지 열기처럼 외부 서비스에 연결하는 기능은 인터넷이 필요합니다. 사용자 데이터는 이 PC의 로컬 SQLite 데이터베이스와 %LOCALAPPDATA%\CALIBRA 파일 폴더에 저장됩니다. 업데이트 설치는 기존 DB를 ZIP 안의 파일로 덮어쓰지 않습니다.
 "@ | Set-Content -LiteralPath $readmePath -Encoding UTF8

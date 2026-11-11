@@ -38,7 +38,7 @@ export default function SharedDataWorkspace() {
     catch (error) { setMessage(error instanceof Error ? error.message : "파일 불러오기 실패"); } finally { setBusy(false); }
   }
   function download(template: boolean) {
-    const body = template ? [data.columns, ...data.rows].map(row => row.map(cell => `"${(/^[=+\-@]/.test(cell) && !Number.isFinite(Number(cell)) ? "'" : "") + cell.replace(/"/g, '""')}"`).join(",")).join("\r\n") : JSON.stringify({ ...data, title }, null, 2);
+    const body = template ? [data.columns, ...data.rows].map(row => row.map(cell => `"${(/^[\s]*[=+\-@]/.test(cell) && !Number.isFinite(Number(cell)) ? "'" : "") + cell.replace(/"/g, '""')}"`).join(",")).join("\r\n") : JSON.stringify({ ...data, title }, null, 2);
     const url = URL.createObjectURL(new Blob([template ? "\uFEFF" + body : body], { type: template ? "text/csv;charset=utf-8" : "application/json" })); const link = document.createElement("a"); link.href = url; link.download = `${title || "학습자료"}.${template ? "csv" : "json"}`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   return <div className="shared-data-workspace">

@@ -13,6 +13,8 @@ async function main() {
   assert.throws(() => validateData({ ...exampleData("u"), rows: [["0", "1"], ["2", "1"]] }));
   assert.throws(() => validateData({ ...exampleData("histogram"), rows: [[""], ["NaN"]] }));
   assert.throws(() => validateData({ ...exampleData("capability"), lowerSpec: 10, upperSpec: 9 }));
+  assert.throws(() => validateData({ ...exampleData("imr"), rows: [["2", "10"], ["1", "11"]] }));
+  assert.equal(exampleData("p").unit, "건");
   const grr = exampleData("grr"); assert.throws(() => validateData({ ...grr, rows: grr.rows.slice(1) }));
   assert.equal(serverAddress("192.168.0.10"), "http://192.168.0.10:3000/");
   assert.equal(serverAddress("localhost:3100"), "http://localhost:3100/");

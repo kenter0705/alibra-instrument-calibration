@@ -36,6 +36,7 @@ export function validateData(input: DataContent) {
     });
     if (["p", "np"].includes(input.chart) && Number(row[1]) > Number(row[0])) throw new Error(`${index + 1}행의 불량품수는 검사수량을 넘을 수 없습니다.`);
     if (input.chart === "np" && Number(row[0]) !== Number(input.rows[0][0])) throw new Error("np 관리도는 검사수량이 일정해야 합니다. 수량이 다르면 p 관리도를 선택하세요.");
+    if (["imr", "xbar"].includes(input.chart) && index > 0 && Number(row[0]) <= Number(input.rows[index - 1][0])) throw new Error("관리도의 순서·부분군 번호는 앞 행보다 커야 합니다.");
   });
   if (input.chart === "capability" && (!Number.isFinite(input.lowerSpec) || !Number.isFinite(input.upperSpec) || input.lowerSpec! >= input.upperSpec!)) throw new Error("규격 하한보다 큰 규격 상한을 입력하세요.");
   if (input.chart === "grr") {
@@ -58,5 +59,5 @@ export function exampleData(chart: ChartType): DataContent {
     if (chart === "u") return [String(2 + i % 3), String(2 + i % 7)];
     return [["치수", "스크래치", "기공", "오염", "기타"][i % 5], String(1 + i % 7)];
   });
-  return { chart, columns: [...chartTypes[chart].columns], rows, lowerSpec: 9.8, upperSpec: 10.2, unit: "mm" };
+  return { chart, columns: [...chartTypes[chart].columns], rows, lowerSpec: 9.8, upperSpec: 10.2, unit: chartTypes[chart].type === "계량치" ? "mm" : chartTypes[chart].type === "계수치" ? "건" : "" };
 }
