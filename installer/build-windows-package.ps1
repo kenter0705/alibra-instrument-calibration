@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $legacyZip = Join-Path $projectRoot 'public\downloads\CALIBRA-Windows.zip'
 $latestVersioned = Get-ChildItem (Join-Path $projectRoot 'public\downloads') -Filter 'CALIBRA-Setup-v*.zip' -File -ErrorAction SilentlyContinue |
@@ -74,6 +74,9 @@ try {
   Add-PackageFile (Join-Path $PSScriptRoot 'Install-CALIBRA.ps1') '설치하기.ps1'
   Add-PackageFile (Join-Path $PSScriptRoot 'Start-CALIBRA.ps1') 'Start-CALIBRA.ps1'
   Add-PackageFile (Join-Path $PSScriptRoot 'Start-CALIBRA.vbs') 'Start-CALIBRA.vbs'
+  Add-PackageFile (Join-Path $PSScriptRoot 'Update-CALIBRA.ps1') 'Update-CALIBRA.ps1'
+  Add-PackageFile (Join-Path $PSScriptRoot 'Uninstall-CALIBRA.ps1') 'Uninstall-CALIBRA.ps1'
+  Add-PackageFile (Join-Path $PSScriptRoot 'Uninstall-CALIBRA.vbs') 'Uninstall-CALIBRA.vbs'
 
   $readmePath = Join-Path $buildRoot '설치 안내.txt'
   @"

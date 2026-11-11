@@ -1,0 +1,33 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { APPROVAL_TICKET_SECONDS, hashPassword, makeApprovalTicket } from "@/lib/auth";
+
+export const runtime = "nodejs";
+
+export async function POST(request: NextRequest) {
+  const form = await request.formData();
+  const email = String(form.get("email") || "").trim().toLowerCase();
+  const password = String(form.get("password") || "");
+  const passwordConfirm = String(form.get("passwordConfirm") || "");
+  const companyName = String(form.get("companyName") || "").trim();
+  const department = String(form.get("department") || "").trim();
+  const displayName = String(form.get("displayName") || "").trim();
+  const employeeNo = String(form.get("employeeNo") || "").trim();
+  const phone = String(form.get("phone") || "").trim();
+  const destination = new URL("/signup", request.url);
+  const fail = (message: string) => { destination.searchParams.set("error", message); return NextResponse.redirect(destination, 303); };
+
+  if (!email || !email.includes("@") || !companyName || !department || !displayName || !employeeNo || !phone) return fail("모든 가입 정보를 입력해 주세요.");
+  if (password.length < 8) return fail("비밀번호는 8자 이상 입력해 주세요.");
+  if (password !== passwordConfirm) return fail("비밀번호 확인이 일치하지 않습니다.");
+  const duplicate = await prisma.userAccount.findFirst({ where: { OR: [{ email }, { username: email }, { employeeNo }] } });
+  if (duplicate) return fail("이미 등록된 이메일 또는 사번입니다. 로그인하거나 관리자에게 문의해 주세요.");
+
+  const account = await prisma.userAccount.create({ data: {
+    username: email, email, displayName, companyName, department, employeeNo, phone,
+    passwordHash: hashPassword(password), profileComplete: true, role: "가입 대기", active: false,
+  } });
+  const response = NextResponse.redirect(new URL("/signup?submitted=1", request.url), 303);
+  response.cookies.set("calibra_approval_ticket", makeApprovalTicket(account.id), { httpOnly:true, secure:process.env.APP_HTTPS === "true", sameSite:"lax", path:"/", maxAge:APPROVAL_TICKET_SECONDS });
+  return response;
+}

@@ -15,6 +15,16 @@ export async function GET(request: Request) {
   jar.set("calibra_google_state", state, { httpOnly: true, secure, sameSite: "lax", path: "/", maxAge: 600 });
   jar.set("calibra_google_nonce", nonce, { httpOnly: true, secure, sameSite: "lax", path: "/", maxAge: 600 });
   const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-  url.search = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: "code", scope: "openid email profile", state, nonce, prompt: "select_account" }).toString();
+  // Keep account selection available while preselecting the user's usual account.
+  url.search = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "openid email profile",
+    state,
+    nonce,
+    login_hint: process.env.CALIBRA_GOOGLE_LOGIN_EMAIL || "kenter6746060@gmail.com",
+    prompt: "select_account",
+  }).toString();
   return NextResponse.redirect(url);
 }

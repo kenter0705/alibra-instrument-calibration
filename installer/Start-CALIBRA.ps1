@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Windows.Forms
 
 $installRoot = Join-Path $env:LOCALAPPDATA 'Programs\CALIBRA'
@@ -8,6 +8,16 @@ $nextCli = Join-Path $appRoot 'node_modules\next\dist\bin\next'
 $dataRoot = Join-Path $env:LOCALAPPDATA 'CALIBRA'
 $secretFile = Join-Path $dataRoot 'auth-secret.txt'
 $instanceFile = Join-Path $dataRoot 'server-instance.json'
+$updater = Join-Path $installRoot 'Update-CALIBRA.ps1'
+$ErrorActionPreference = 'Continue'
+if (Test-Path -LiteralPath $updater) {
+  # Best-effort code-only update. The updater package never contains the SQLite DB
+  # or user files, and network failure leaves the installed version untouched.
+  & $updater -AppRoot $appRoot -InstallRoot $installRoot -DataRoot $dataRoot
+}
+$ErrorActionPreference = 'Stop'
+$buildIdFile = Join-Path $appRoot '.calibra-build\BUILD_ID'
+$buildId = if (Test-Path -LiteralPath $buildIdFile) { (Get-Content -LiteralPath $buildIdFile -Raw).Trim() } else { 'unknown' }
 
 if (-not (Test-Path $node) -or -not (Test-Path $nextCli)) {
   [Windows.Forms.MessageBox]::Show('CALIBRA 설치 파일이 올바르지 않습니다. SETUP.exe를 다시 실행해 주세요.', 'CALIBRA 실행 오류', 'OK', 'Error') | Out-Null
@@ -20,10 +30,35 @@ if (-not (Test-Path $secretFile)) {
   try { $rng.GetBytes($bytes) } finally { $rng.Dispose() }
   [Convert]::ToBase64String($bytes) | Set-Content -NoNewline $secretFile
 }
+$secretAcl = Get-Acl -LiteralPath $secretFile
+$secretAcl.SetAccessRuleProtection($true, $false)
+$owner = [Security.Principal.WindowsIdentity]::GetCurrent().User
+$secretAcl.SetOwner($owner)
+$secretAcl.Access | ForEach-Object { [void]$secretAcl.RemoveAccessRule($_) }
+$secretAcl.AddAccessRule((New-Object Security.AccessControl.FileSystemAccessRule($owner, 'FullControl', 'Allow')))
+Set-Acl -LiteralPath $secretFile -AclObject $secretAcl
 $env:AUTH_SECRET = (Get-Content -Raw $secretFile).Trim()
 $env:DATABASE_URL = 'file:./dev.db'
 $env:CALIBRA_DATA_DIR = Join-Path $dataRoot 'files'
 $env:NODE_ENV = 'production'
+$env:CALIBRA_BUILD_ID = $buildId
+$env:CALIBRA_GOOGLE_LOGIN_EMAIL = 'kenter6746060@gmail.com'
+
+# OAuth client credentials are local machine configuration; never package them
+# with the public installer. Existing Google consent is retained by the browser.
+$googleConfig = Join-Path $dataRoot 'google-oauth.json'
+if (Test-Path -LiteralPath $googleConfig) {
+  try {
+    $oauth = Get-Content -LiteralPath $googleConfig -Raw | ConvertFrom-Json
+    if ($oauth.clientId -and $oauth.clientSecret) {
+      $env:GOOGLE_CLIENT_ID = [string]$oauth.clientId
+      $env:GOOGLE_CLIENT_SECRET = [string]$oauth.clientSecret
+      if ($oauth.redirectUri) { $env:GOOGLE_REDIRECT_URI = [string]$oauth.redirectUri }
+    }
+  } catch {
+    [Windows.Forms.MessageBox]::Show('Google OAuth 설정 파일을 읽지 못했습니다. %LOCALAPPDATA%\CALIBRA\google-oauth.json 내용을 확인해 주세요.', 'CALIBRA 로그인 설정', 'OK', 'Warning') | Out-Null
+  }
+}
 
 function Test-PortInUse([int]$candidatePort) {
   $client = [Net.Sockets.TcpClient]::new()
@@ -34,6 +69,21 @@ function Test-PortInUse([int]$candidatePort) {
   } catch { return $false } finally { $client.Dispose() }
 }
 
+function Test-CalibraServer([int]$candidatePort, [string]$expectedBuildId) {
+  try {
+    $request = [Net.HttpWebRequest]::Create("http://127.0.0.1:$candidatePort/api/health")
+    $request.Method = 'GET'
+    $request.Proxy = $null
+    $request.Timeout = 1200
+    $response = $request.GetResponse()
+    try {
+      $reader = New-Object IO.StreamReader($response.GetResponseStream())
+      try { $health = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
+      return $health.service -eq 'calibra-local' -and $health.buildId -eq $expectedBuildId
+    } finally { $response.Dispose() }
+  } catch { return $false }
+}
+
 # Only reuse the process ID recorded by this install. A different app on port 3000 is ignored.
 $port = $null
 if (Test-Path $instanceFile) {
@@ -41,10 +91,7 @@ if (Test-Path $instanceFile) {
     $instance = Get-Content -LiteralPath $instanceFile -Raw | ConvertFrom-Json
     $serverPid = [int]$instance.pid
     $candidatePort = [int]$instance.port
-    $process = Get-CimInstance Win32_Process -Filter "ProcessId = $serverPid" -ErrorAction Stop
-    if ($process -and $process.ExecutablePath -and
-        ([IO.Path]::GetFullPath($process.ExecutablePath) -ieq [IO.Path]::GetFullPath($node)) -and
-        $process.CommandLine.Contains("--port $candidatePort") -and (Test-PortInUse $candidatePort)) {
+    if ((Test-PortInUse $candidatePort) -and (Test-CalibraServer $candidatePort $buildId)) {
       $port = $candidatePort
     }
   } catch { $port = $null }
@@ -67,7 +114,7 @@ if ($null -eq $port) {
       Start-Sleep -Milliseconds 500
       $server.Refresh()
       if ($server.HasExited) { break }
-      if (Test-PortInUse $candidate) { $ready = $true; break }
+      if (Test-CalibraServer $candidate $buildId) { $ready = $true; break }
     }
     if ($ready) {
       $port = $candidate

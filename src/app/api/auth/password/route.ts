@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { makeSession, verifyPassword } from "@/lib/auth";
+import { makeSession, verifyPassword, SESSION_DURATION_SECONDS } from "@/lib/auth";
 
 export const runtime = "nodejs";
 const cookieName = "calibra_session";
@@ -19,6 +19,14 @@ export async function POST(request: NextRequest) {
   const account = await prisma.userAccount.findFirst({
     where: { OR: [{ email }, { username: email }] },
   });
+  if (account?.googleSubject) {
+    loginUrl.searchParams.set("error", "이 계정은 Google 인증 계정입니다. 아래 Google 로그인 버튼으로 접속해 주세요.");
+    return NextResponse.redirect(loginUrl, 303);
+  }
+  if (account && !account.active && account.role === "가입 대기") {
+    loginUrl.searchParams.set("error", "가입 신청이 저장되어 관리자 승인을 기다리고 있습니다.");
+    return NextResponse.redirect(loginUrl, 303);
+  }
   if (!account || !account.active || !verifyPassword(password, account.passwordHash)) {
     loginUrl.searchParams.set("error", "이메일 주소 또는 비밀번호를 확인해 주세요.");
     return NextResponse.redirect(loginUrl, 303);
@@ -28,13 +36,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect(loginUrl, 303);
   }
 
-  const response = NextResponse.redirect(new URL(account.profileComplete ? "/quality" : "/account/profile", request.url), 303);
+  const response = NextResponse.redirect(new URL(account.profileComplete ? "/" : "/account/profile", request.url), 303);
   response.cookies.set(cookieName, makeSession(account.id), {
     httpOnly: true,
     secure: process.env.APP_HTTPS === "true",
     sameSite: "lax",
     path: "/",
-    maxAge: 8 * 60 * 60,
+    maxAge: SESSION_DURATION_SECONDS,
   });
   return response;
 }

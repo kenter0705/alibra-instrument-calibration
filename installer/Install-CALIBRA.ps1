@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 
 $packageRoot = $PSScriptRoot
 $installRoot = Join-Path $env:LOCALAPPDATA 'Programs\CALIBRA'
@@ -7,6 +7,12 @@ $appRoot = Join-Path $installRoot 'app'
 $fileRoot = Join-Path $dataRoot 'files'
 $dbPath = Join-Path $appRoot 'prisma\dev.db'
 New-Item -ItemType Directory -Force -Path $appRoot, (Split-Path $dbPath), $fileRoot | Out-Null
+
+# Restore a database retained by the uninstaller before considering a new database.
+$preservedDb = Join-Path $dataRoot 'dev.db'
+if (-not (Test-Path $dbPath) -and (Test-Path $preservedDb)) {
+  Copy-Item -LiteralPath $preservedDb -Destination $dbPath
+}
 
 # Copy application files as an overlay. No existing file is deleted; the local DB is not in the ZIP payload.
 & robocopy (Join-Path $packageRoot 'app') $appRoot /E /XJ /R:1 /W:1 /NFL /NDL /NJH /NJS /NC /NS | Out-Null
@@ -87,12 +93,33 @@ if (-not (Test-Path $secretFile)) {
 }
 Copy-Item -LiteralPath (Join-Path $packageRoot 'Start-CALIBRA.ps1') -Destination (Join-Path $dataRoot 'Start-CALIBRA.ps1') -Force
 Copy-Item -LiteralPath (Join-Path $packageRoot 'Start-CALIBRA.vbs') -Destination (Join-Path $dataRoot 'Start-CALIBRA.vbs') -Force
+Copy-Item -LiteralPath (Join-Path $packageRoot 'Update-CALIBRA.ps1') -Destination (Join-Path $installRoot 'Update-CALIBRA.ps1') -Force
+if (-not (Test-Path (Join-Path $packageRoot 'Uninstall-CALIBRA.ps1'))) { throw '제거 도구가 설치 패키지에 없습니다.' }
+Copy-Item -LiteralPath (Join-Path $packageRoot 'Uninstall-CALIBRA.ps1') -Destination (Join-Path $installRoot 'Uninstall-CALIBRA.ps1') -Force
+Copy-Item -LiteralPath (Join-Path $packageRoot 'Uninstall-CALIBRA.vbs') -Destination (Join-Path $installRoot 'Uninstall-CALIBRA.vbs') -Force
+$uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\CALIBRA'
+New-Item -Path $uninstallKey -Force | Out-Null
+Set-ItemProperty -Path $uninstallKey -Name DisplayName -Value 'CALIBRA 계측기 검교정 이력관리'
+$appVersion = (Get-Content (Join-Path $appRoot 'package.json') -Raw | ConvertFrom-Json).version
+Set-ItemProperty -Path $uninstallKey -Name DisplayVersion -Value $appVersion
+Set-ItemProperty -Path $uninstallKey -Name Publisher -Value 'CALIBRA'
+$uninstallCommand = 'wscript.exe "' + (Join-Path $installRoot 'Uninstall-CALIBRA.vbs') + '"'
+Set-ItemProperty -Path $uninstallKey -Name UninstallString -Value $uninstallCommand
+New-ItemProperty -Path $uninstallKey -Name NoModify -Value 1 -PropertyType DWord -Force | Out-Null
+New-ItemProperty -Path $uninstallKey -Name NoRepair -Value 1 -PropertyType DWord -Force | Out-Null
+$startMenu = Join-Path ([Environment]::GetFolderPath('Programs')) 'CALIBRA'
+New-Item -ItemType Directory -Force -Path $startMenu | Out-Null
+$menuLink = (New-Object -ComObject WScript.Shell).CreateShortcut((Join-Path $startMenu 'CALIBRA 제거.lnk'))
+$menuLink.TargetPath = Join-Path $env:SystemRoot 'System32\wscript.exe'
+$menuLink.Arguments = '"' + (Join-Path $installRoot 'Uninstall-CALIBRA.vbs') + '"'
+$menuLink.Description = 'CALIBRA 프로그램 제거 (사용자 자료 보존)'
+$menuLink.Save()
 
 $desktop = [Environment]::GetFolderPath('Desktop')
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut((Join-Path $desktop 'CALIBRA.lnk'))
 $shortcut.TargetPath = Join-Path $env:SystemRoot 'System32\wscript.exe'
-$shortcut.Arguments = "`"$(Join-Path $dataRoot 'Start-CALIBRA.vbs')`""
+$shortcut.Arguments = '"' + (Join-Path $dataRoot 'Start-CALIBRA.vbs') + '"'
 $shortcut.WorkingDirectory = $appRoot
 $shortcut.Description = 'CALIBRA 계측기 검교정 이력관리 시스템'
 $icon = Join-Path $appRoot 'public\calibra.ico'
