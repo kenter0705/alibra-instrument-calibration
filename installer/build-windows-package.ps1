@@ -1,5 +1,6 @@
 ﻿$ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$sourceRoot = if ($env:CALIBRA_SOURCE_ROOT) { (Resolve-Path -LiteralPath $env:CALIBRA_SOURCE_ROOT).Path } else { $projectRoot }
 $legacyZip = Join-Path $projectRoot 'public\downloads\CALIBRA-Windows.zip'
 $latestVersioned = Get-ChildItem (Join-Path $projectRoot 'public\downloads') -Filter 'CALIBRA-Setup-v*.zip' -File -ErrorAction SilentlyContinue |
   Sort-Object LastWriteTime -Descending | Select-Object -First 1
@@ -54,13 +55,13 @@ try {
     }
   }
 
-  Add-PackageTree (Join-Path $projectRoot 'src') 'app/src/' {
+  Add-PackageTree (Join-Path $sourceRoot 'src') 'app/src/' {
     param($file)
-    $relative = $file.FullName.Substring((Resolve-Path (Join-Path $projectRoot 'src')).Path.Length + 1).Replace('\', '/')
+    $relative = $file.FullName.Substring((Resolve-Path (Join-Path $sourceRoot 'src')).Path.Length + 1).Replace('\', '/')
     -not ($relative -match '(?i)^generated/prisma-temp/' -or $file.Name -match '(?i)^query_engine-windows\.dll\.node\.tmp\d+$')
   }
-  Add-PackageTree (Join-Path $projectRoot 'prisma') 'app/prisma/' { param($file) $file.Name -notmatch '\.db(-wal|-shm)?$' }
-  Add-PackageTree (Join-Path $projectRoot 'public') 'app/public/' { param($file) $file.Extension -ne '.zip' }
+  Add-PackageTree (Join-Path $sourceRoot 'prisma') 'app/prisma/' { param($file) $file.Name -notmatch '\.db(-wal|-shm)?$' }
+  Add-PackageTree (Join-Path $sourceRoot 'public') 'app/public/' { param($file) $file.Extension -ne '.zip' }
   Add-PackageTree $sourceBuildRoot 'app/.calibra-build/' {
     param($file)
     $relative = $file.FullName.Substring((Resolve-Path $sourceBuildRoot).Path.Length + 1)
@@ -68,7 +69,7 @@ try {
   }
 
   foreach ($name in @('package.json','next.config.ts','tsconfig.json','postcss.config.mjs','pnpm-lock.yaml')) {
-    Add-PackageFile (Join-Path $projectRoot $name) ('app/' + $name)
+    Add-PackageFile (Join-Path $sourceRoot $name) ('app/' + $name)
   }
   Add-PackageFile $setupExe 'SETUP.exe'
   Add-PackageFile (Join-Path $PSScriptRoot 'Install-CALIBRA.ps1') '설치하기.ps1'

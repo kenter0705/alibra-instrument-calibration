@@ -71,15 +71,15 @@ function Test-PortInUse([int]$candidatePort) {
 
 function Test-CalibraServer([int]$candidatePort, [string]$expectedBuildId) {
   try {
-    $request = [Net.HttpWebRequest]::Create("http://127.0.0.1:$candidatePort/api/health")
+    $request = [Net.HttpWebRequest]::Create("http://127.0.0.1:$candidatePort/login")
     $request.Method = 'GET'
     $request.Proxy = $null
     $request.Timeout = 1200
     $response = $request.GetResponse()
     try {
       $reader = New-Object IO.StreamReader($response.GetResponseStream())
-      try { $health = $reader.ReadToEnd() | ConvertFrom-Json } finally { $reader.Dispose() }
-      return $health.service -eq 'calibra-local' -and $health.buildId -eq $expectedBuildId
+      try { $page = $reader.ReadToEnd() } finally { $reader.Dispose() }
+      return $response.StatusCode -eq 200 -and $page.Contains('CALIBRA')
     } finally { $response.Dispose() }
   } catch { return $false }
 }
@@ -91,8 +91,11 @@ if (Test-Path $instanceFile) {
     $instance = Get-Content -LiteralPath $instanceFile -Raw | ConvertFrom-Json
     $serverPid = [int]$instance.pid
     $candidatePort = [int]$instance.port
-    if ((Test-PortInUse $candidatePort) -and (Test-CalibraServer $candidatePort $buildId)) {
-      $port = $candidatePort
+    $process = Get-CimInstance Win32_Process -Filter "ProcessId = $serverPid" -ErrorAction Stop
+    $owned = $process.ExecutablePath -and ([IO.Path]::GetFullPath($process.ExecutablePath) -ieq [IO.Path]::GetFullPath($node)) -and $process.CommandLine.Contains($nextCli)
+    if ($owned -and (Test-PortInUse $candidatePort)) {
+      if ($instance.buildId -eq $buildId -and (Test-CalibraServer $candidatePort $buildId)) { $port = $candidatePort }
+      else { Stop-Process -Id $serverPid -Force; Start-Sleep -Milliseconds 500 }
     }
   } catch { $port = $null }
 }
@@ -118,7 +121,7 @@ if ($null -eq $port) {
     }
     if ($ready) {
       $port = $candidate
-      @{ pid = $server.Id; port = $port } | ConvertTo-Json | Set-Content -LiteralPath $instanceFile -Encoding ASCII
+      @{ pid = $server.Id; port = $port; buildId = $buildId } | ConvertTo-Json | Set-Content -LiteralPath $instanceFile -Encoding ASCII
       break
     }
   }

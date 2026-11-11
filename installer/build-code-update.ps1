@@ -1,5 +1,6 @@
 ﻿$ErrorActionPreference = 'Stop'
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+$sourceRoot = if ($env:CALIBRA_SOURCE_ROOT) { (Resolve-Path -LiteralPath $env:CALIBRA_SOURCE_ROOT).Path } else { $projectRoot }
 $version = (Get-Content (Join-Path $projectRoot 'package.json') -Raw | ConvertFrom-Json).version
 $buildDirName = if ($env:CALIBRA_BUILD_DIR) { $env:CALIBRA_BUILD_DIR } else { '.calibra-build' }
 $buildRoot = Join-Path $projectRoot $buildDirName
@@ -41,7 +42,7 @@ try {
   }
 
   # Include only UI/static public assets; never include downloadable installers or local data.
-  $publicRoot = Join-Path $projectRoot 'public'
+  $publicRoot = Join-Path $sourceRoot 'public'
   Get-ChildItem -LiteralPath $publicRoot -Recurse -File -Force | Where-Object {
     $_.FullName -notmatch '\\downloads\\' -and $_.Extension -notin @('.db', '.sqlite', '.zip')
   } | ForEach-Object {
