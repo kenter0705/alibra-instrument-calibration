@@ -16,7 +16,7 @@ async function main() {
   assert.throws(() => validateData({ ...exampleData("imr"), rows: [["2", "10"], ["1", "11"]] }));
   assert.equal(exampleData("p").unit, "건");
   const grr = exampleData("grr"); assert.throws(() => validateData({ ...grr, rows: grr.rows.slice(1) }));
-  assert.equal(serverAddress("192.168.0.10"), "http://192.168.0.10:3000/");
+  assert.equal(serverAddress("192.168.0.10"), "http://192.168.0.10:4000/");
   assert.equal(serverAddress("localhost:3100"), "http://localhost:3100/");
   assert.equal(serverAddress("https://192.168.0.10:443"), "https://192.168.0.10/");
   for (const bad of ["127.1", "123", "0x7f000001", "192.168.001.1", "192.168.0.256", "0.0.0.0", "255.255.255.255", "localhost:0", "localhost:65536", "javascript:alert(1)", "http://user:pass@192.168.0.10", "http://192.168.0.10/path", "http://192.168.0.10?x=1"]) assert.throws(() => serverAddress(bad), bad);
