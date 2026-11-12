@@ -1,6 +1,6 @@
 ﻿$ErrorActionPreference='Stop'
 $root=Split-Path -Parent $PSScriptRoot
-$stage=Join-Path $root 'dist\classroom-v0.2.0-source'
+$stage=Join-Path $root 'dist\classroom-v0.2.1-source'
 $qa=Join-Path $root 'dist\classroom-qa'
 $id=(Get-Content -LiteralPath (Join-Path $stage '.calibra-build\BUILD_ID') -Raw).Trim()
 Copy-Item -LiteralPath (Join-Path $root 'installer\Start-CALIBRA-Classroom.ps1') -Destination (Join-Path $qa 'Start-CALIBRA.ps1') -Force

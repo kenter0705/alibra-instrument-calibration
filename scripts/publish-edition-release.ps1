@@ -5,7 +5,8 @@ param(
  [Parameter(Mandatory=$true)][string]$NotesFile,
  [Parameter(Mandatory=$true)][string[]]$Files,
  [switch]$Latest,
- [switch]$KeepDraft
+ [switch]$KeepDraft,
+ [switch]$ReplaceDraftAssets
 )
 $ErrorActionPreference='Stop'
 $raw="protocol=https`nhost=github.com`n`n"|git credential fill
@@ -15,8 +16,20 @@ $headers=@{Authorization=('Bearer '+$credential.password);'User-Agent'='CALIBRA-
 $api='https://api.github.com/repos/kenter0705/alibra-instrument-calibration'
 foreach($file in $Files){if(-not (Test-Path -LiteralPath $file -PathType Leaf)){throw ('Missing release asset: '+$file)}}
 $payload=@{tag_name=$Tag;target_commitish=$Commit;name=$Title;body=[IO.File]::ReadAllText((Resolve-Path -LiteralPath $NotesFile).Path);draft=$true;prerelease=$false}|ConvertTo-Json
-$release=Invoke-RestMethod -Method Post -Uri ($api+'/releases') -Headers $headers -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($payload))
-Write-Output ('Created release draft '+$Tag)
+if($ReplaceDraftAssets){
+ $statePath=Join-Path (Split-Path -Parent $PSScriptRoot) ('dist/release-'+$Tag+'.json')
+ $state=Get-Content -LiteralPath $statePath -Raw|ConvertFrom-Json
+ $release=Invoke-RestMethod -Uri ($api+'/releases/'+$state.id) -Headers $headers
+ if(-not $release.draft -or $release.tag_name -ne $Tag){throw 'Only the matching unpublished draft may be replaced.'}
+ $allowed=@($Files|ForEach-Object{Split-Path $_ -Leaf})
+ if($release.assets|Where-Object{$_.name -notin $allowed}){throw 'Unexpected draft attachment; preserve it for review.'}
+ foreach($asset in $release.assets){Invoke-RestMethod -Method Delete -Uri ($api+'/releases/assets/'+$asset.id) -Headers $headers|Out-Null}
+ $release=Invoke-RestMethod -Method Patch -Uri ($api+'/releases/'+$release.id) -Headers $headers -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($payload))
+ Write-Output ('Updating verified unpublished draft '+$Tag)
+}else{
+ $release=Invoke-RestMethod -Method Post -Uri ($api+'/releases') -Headers $headers -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($payload))
+ Write-Output ('Created release draft '+$Tag)
+}
 $client=[Net.Http.HttpClient]::new();$client.Timeout=[TimeSpan]::FromMinutes(30)
 $client.DefaultRequestHeaders.Authorization=[Net.Http.Headers.AuthenticationHeaderValue]::new('Bearer',$credential.password)
 $client.DefaultRequestHeaders.UserAgent.ParseAdd('CALIBRA-Edition-Release')
