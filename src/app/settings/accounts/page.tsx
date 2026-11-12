@@ -1,3 +1,4 @@
+import { SESSION_COOKIE } from "@/lib/app-edition";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -10,11 +11,11 @@ export const dynamic = "force-dynamic";
 
 export default async function AccountManagementPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
   const { saved, error } = await searchParams;
-  const token = (await cookies()).get("calibra_session")?.value || "";
+  const token = (await cookies()).get(SESSION_COOKIE)?.value || "";
   if (!validSession(token)) redirect("/login");
   const actor = await prisma.userAccount.findUnique({ where: { id: token.split(".")[0] } });
   if (!actor?.active) redirect("/login");
-  if (actor.role !== "관리자") redirect("/account?error=관리자만%20사용자%20승인을%20관리할%20수%20있습니다");
+  if (actor.role !== "관리자") redirect("/account?error=%EA%B4%80%EB%A6%AC%EC%9E%90%EB%A7%8C%20%EC%82%AC%EC%9A%A9%EC%9E%90%20%EC%8A%B9%EC%9D%B8%EC%9D%84%20%EA%B4%80%EB%A6%AC%ED%95%A0%20%EC%88%98%20%EC%9E%88%EC%8A%B5%EB%8B%88%EB%8B%A4");
   const users = await prisma.userAccount.findMany({ orderBy: [{ active: "asc" }, { createdAt: "desc" }] });
 
   return <main className="record-page"><header className="record-top"><Link href="/settings" className="back-link"><ArrowLeft size={16}/> 시스템 설정</Link></header><section className="record-content">
