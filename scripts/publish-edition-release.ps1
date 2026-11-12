@@ -4,7 +4,8 @@ param(
  [Parameter(Mandatory=$true)][string]$Title,
  [Parameter(Mandatory=$true)][string]$NotesFile,
  [Parameter(Mandatory=$true)][string[]]$Files,
- [switch]$Latest
+ [switch]$Latest,
+ [switch]$KeepDraft
 )
 $ErrorActionPreference='Stop'
 $raw="protocol=https`nhost=github.com`n`n"|git credential fill
@@ -36,6 +37,8 @@ try{
  }
 }finally{$client.Dispose()}
 $latestValue=if($Latest){'true'}else{'false'}
+@{id=$release.id;tag=$Tag;latest=$latestValue}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) ('dist/release-'+$Tag+'.json')) -Encoding UTF8
+if($KeepDraft){Write-Output ('Uploaded verified draft '+$Tag+' ID '+$release.id);exit 0}
 $body=@{draft=$false;make_latest=$latestValue}|ConvertTo-Json
 $published=Invoke-RestMethod -Method Patch -Uri ($api+'/releases/'+$release.id) -Headers $headers -ContentType 'application/json' -Body $body
 Write-Output ('Published '+$published.html_url)
