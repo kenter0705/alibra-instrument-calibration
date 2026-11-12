@@ -27,7 +27,7 @@ let needsSetup;
 try { needsSetup = db.prepare('SELECT COUNT(*) AS count FROM UserAccount').get().count === 0; }
 finally { db.close(); }
 // Token is never returned in stdout. Only the local desktop launcher reads it.
-if (needsSetup && edition === 'classroom') {
+if (needsSetup) {
   const setup = path.join(files, 'setup'); fs.mkdirSync(setup, { recursive: true });
   const token = path.join(setup, 'first-admin-token.txt');
   try { fs.writeFileSync(token, crypto.randomBytes(32).toString('hex'), { flag: 'wx', mode: 0o600 }); }

@@ -5,34 +5,41 @@ $source=(Resolve-Path -LiteralPath $SourceRoot).Path
 $package=Get-Content -LiteralPath (Join-Path $source 'package.json') -Raw|ConvertFrom-Json
 $edition=[string]$package.calibraEdition
 if($edition -notin @('personal','classroom')){throw 'An explicit app edition is required.'}
-$assetName=if($edition -eq 'classroom'){'CALIBRA-Classroom'}else{'CALIBRA-Personal'}
-$appName=if($edition -eq 'classroom'){'CALIBRA 다인·교육용'}else{'CALIBRA 개인용'}
+$assetName=if($edition -eq 'classroom'){'CALIBRA-Multi'}else{'CALIBRA-Personal'}
+$appName=if($edition -eq 'classroom'){'CALIBRA 멀티'}else{'CALIBRA 퍼스널'}
 $directory=if($edition -eq 'classroom'){'CALIBRA-Classroom'}else{'CALIBRA'}
 $port=if($edition -eq 'classroom'){4000}else{3000}
 $version=$package.version
+$releaseDate=[string]$package.calibraReleaseDate
+if($releaseDate -notmatch '^\d{4}-\d{2}-\d{2}$'){throw 'An explicit release date is required.'}
+$buildDate=$releaseDate.Replace('-','')
 $build=Join-Path $source '.calibra-build'
 $id=(Get-Content -LiteralPath (Join-Path $build 'BUILD_ID') -Raw).Trim()
-$releaseDir=('.calibra-releases\'+$edition+'-')+$version+'-'+(Get-Date -Format 'yyyyMMdd')
+$releaseDir=('.calibra-releases\'+$edition+'-')+$version+'-'+$buildDate
 $base=Join-Path $root 'public\downloads\CALIBRA-Setup-v0.1.3-20261111.zip'
-$output=Join-Path $root (('public\downloads\'+$assetName+'-Setup-v')+$version+'-'+(Get-Date -Format 'yyyyMMdd')+'.zip')
+$output=Join-Path $root (('public\downloads\'+$assetName+'-Setup-v')+$version+'-'+$buildDate+'.zip')
 if(Test-Path -LiteralPath $output){throw 'The output already exists; published versions must not be overwritten.'}
 $scratch=Join-Path $root ('dist\'+$edition+'-package-metadata');New-Item -ItemType Directory -Force -Path $scratch|Out-Null
-@{edition=$edition;version=$version;releaseDate=(Get-Date -Format 'yyyy-MM-dd');buildId=$id;buildDir=$releaseDir}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $scratch 'active-release.json') -Encoding UTF8
+$compiler=Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
+$setup=Join-Path $scratch 'SETUP.exe'
+& $compiler /nologo /target:winexe /r:System.Windows.Forms.dll /r:System.Drawing.dll ("/out:"+$setup) (Join-Path $PSScriptRoot 'SetupLauncher.cs')
+if($LASTEXITCODE -ne 0){throw 'Edition setup launcher compilation failed.'}
+@{edition=$edition;version=$version;releaseDate=$releaseDate;buildId=$id;buildDir=$releaseDir}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $scratch 'active-release.json') -Encoding UTF8
 @"
 $appName v$version
 이 설치 파일은 $edition 앱 전용입니다. 압축을 풀고 SETUP.exe를 실행하세요.
 바로가기: $appName / 기본 주소: http://localhost:$port/
 설치: %LOCALAPPDATA%\Programs\$directory
 자료: %LOCALAPPDATA%\$directory
-개인용과 다인·교육용은 설치 폴더, 자료, 계정, 바로가기, 포트를 따로 사용합니다.
+퍼스널과 멀티은 설치 폴더, 자료, 계정, 바로가기, 포트를 따로 사용합니다.
 기존 앱의 원본 DB와 첨부자료는 보존합니다. 다른 종류 앱의 자료를 자동 복사하지 않습니다.
 최초 설치 PC에서 관리자 이메일과 비밀번호를 직접 등록합니다. 기존 계정은 그대로 유지합니다.
-다인용만: 관리자 로그인 후 다수 사용하기에서 공유를 저장하고 해당 앱 바로가기를 다시 실행합니다.
+멀티만: 관리자 로그인 후 다수 사용하기에서 공유를 저장하고 해당 앱 바로가기를 다시 실행합니다.
 교육생은 같은 네트워크에서 서버 IP:4000으로 접속하여 승인된 본인 계정으로 로그인합니다.
 공동 데이터실은 원본 보존 / 불러오기 / 사본 수정 / 다른 이름으로 저장을 지원합니다.
 게시글 내용은 Excel 또는 PDF로 하나씩, 선택하여, 또는 일괄 내려받을 수 있습니다.
 25명 HTTP 동시 사용 시험은 통과했습니다. 실제 교실 PC의 네트워크와 방화벽 접속은 수업 전에 점검하세요.
-공유 폴더의 DB를 여러 PC에서 직접 열지 말고, 다인용 서버 PC를 켠 채 웹 주소로 접속합니다.
+공유 폴더의 DB를 여러 PC에서 직접 열지 말고, 멀티 서버 PC를 켠 채 웹 주소로 접속합니다.
 "@|Set-Content -LiteralPath (Join-Path $scratch '설치 안내.txt') -Encoding UTF8
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 Copy-Item -LiteralPath $base -Destination $output
@@ -56,6 +63,7 @@ try{
   foreach($file in @('package.json','pnpm-lock.yaml','next.config.ts','tsconfig.json','postcss.config.mjs')){Add-File (Join-Path $source $file) ('app/'+$file)}
   Add-File (Join-Path $source 'scripts\initialize-local-data.cjs') 'app/scripts/initialize-local-data.cjs'
   Add-File (Join-Path $PSScriptRoot 'Install-Edition.ps1') '설치하기.ps1'
+  Add-File $setup 'SETUP.exe'
   Add-File (Join-Path $PSScriptRoot ('Start-CALIBRA-'+$(if($edition -eq 'classroom'){'Classroom'}else{'Personal'})+'.ps1')) 'Start-CALIBRA.ps1'
   Add-File (Join-Path $PSScriptRoot 'Start-CALIBRA.vbs') 'Start-CALIBRA.vbs'
   Add-File (Join-Path $scratch 'active-release.json') 'active-release.json'

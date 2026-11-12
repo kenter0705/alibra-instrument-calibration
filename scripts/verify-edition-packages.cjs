@@ -5,8 +5,10 @@ const python='C:/Users/k_ent/.cache/codex-runtimes/codex-primary-runtime/depende
 const code=String.raw`
 import zipfile,json,hashlib,sys,pathlib
 root=pathlib.Path(sys.argv[1])
-for edition,version,label in [('personal','0.1.4','Personal'),('classroom','0.2.0','Classroom')]:
- filename=root/'public/downloads'/('CALIBRA-'+label+'-Setup-v'+version+'-20261112.zip')
+editions=json.loads((root/'installer/editions.json').read_text(encoding='utf-8-sig'))
+for edition,settings in editions.items():
+ version=settings['version'];label='Classroom' if edition=='classroom' else 'Personal'
+ filename=root/'public/downloads'/(settings['assetPrefix']+'-Setup-v'+version+'-20261112.zip')
  digest=hashlib.sha256(filename.read_bytes()).hexdigest()
  assert filename.with_suffix('.zip.sha256').read_text().split()[0]==digest
  with zipfile.ZipFile(filename) as z:

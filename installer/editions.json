@@ -1,24 +1,24 @@
 {
   "personal": {
-    "name": "CALIBRA 개인용",
-    "version": "0.1.4",
+    "name": "CALIBRA 퍼스널",
+    "version": "0.1.5",
     "installDirectory": "CALIBRA",
     "dataDirectory": "CALIBRA",
     "port": 3000,
-    "shortcut": "CALIBRA 개인용",
-    "releaseTag": "v0.1.4",
+    "shortcut": "CALIBRA 퍼스널",
+    "releaseTag": "v0.1.5",
     "assetPrefix": "CALIBRA-Personal",
     "makeLatest": true
   },
   "classroom": {
-    "name": "CALIBRA 다인·교육용",
-    "version": "0.2.0",
+    "name": "CALIBRA 멀티",
+    "version": "0.2.1",
     "installDirectory": "CALIBRA-Classroom",
     "dataDirectory": "CALIBRA-Classroom",
     "port": 4000,
-    "shortcut": "CALIBRA 다인·교육용",
-    "releaseTag": "classroom-v0.2.0",
-    "assetPrefix": "CALIBRA-Classroom",
+    "shortcut": "CALIBRA 멀티",
+    "releaseTag": "classroom-v0.2.1",
+    "assetPrefix": "CALIBRA-Multi",
     "makeLatest": false
   }
 }
