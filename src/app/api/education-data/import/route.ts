@@ -2,6 +2,8 @@ import { sameOriginRequest } from "@/lib/request-origin";
 import ExcelJS from "exceljs";
 import { Readable } from "node:stream";
 import path from "node:path";
+import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { educationUser } from "@/lib/education-auth";
 import { saveDataset } from "@/lib/education-store";
 import { chartTypes, type ChartType, type DataContent } from "@/lib/education-data";
@@ -17,7 +19,16 @@ export async function POST(request: Request) {
     let data: DataContent;
     if (extension === ".json") { data = JSON.parse(bytes.toString("utf8")); }
     else {
-      const chart = String(form.get("chart")) as ChartType; if (!chartTypes[chart]) throw new Error("대상 그래프를 선택하세요.");
+      let chart = String(form.get("chart")) as ChartType;
+      let sample:DataContent|undefined;
+      try{
+        const root=path.join(process.cwd(),"public/example-data");
+        const manifest=JSON.parse(await readFile(path.join(root,"manifest.json"),"utf8"));
+        const digest=createHash("sha256").update(bytes).digest("hex");
+        const entry=manifest.samples.find((entry:any)=>entry.files.includes(upload.name)&&entry.sha256[extension.slice(1)]===digest);
+        if(entry){const originals=JSON.parse(await readFile(path.join(root,"master-records.json"),"utf8"));sample=originals.find((record:any)=>record.id===entry.id);if(sample)chart=sample.chart;}
+      }catch{}
+      if (!chartTypes[chart]) throw new Error("대상 그래프를 선택하세요.");
       const workbook = new ExcelJS.Workbook();
       if (extension === ".xlsx") await workbook.xlsx.load(bytes as any);
       else if (extension === ".csv") await workbook.csv.read(Readable.from(bytes));
@@ -26,7 +37,7 @@ export async function POST(request: Request) {
       const matrix: string[][] = [];
       sheet.eachRow(row => { matrix.push(Array.from({ length: sheet.columnCount }, (_, i) => row.getCell(i + 1).text.trim())); });
       const columns = matrix.shift() || [];
-      data = { chart, columns, rows: matrix, lowerSpec: form.get("lowerSpec") ? Number(form.get("lowerSpec")) : undefined, upperSpec: form.get("upperSpec") ? Number(form.get("upperSpec")) : undefined, unit: String(form.get("unit") || "") };
+      data = { chart, columns, rows: matrix, lowerSpec: sample?.lowerSpec??(form.get("lowerSpec") ? Number(form.get("lowerSpec")) : undefined), upperSpec: sample?.upperSpec??(form.get("upperSpec") ? Number(form.get("upperSpec")) : undefined), unit: sample?.unit??String(form.get("unit") || "") };
     }
     return Response.json(await saveDataset({ ...data, parentId: undefined, title: String(form.get("title") || path.basename(upload.name, extension)) }, user, { bytes, name: upload.name }), { status: 201 });
   } catch (error) { return Response.json({ error: error instanceof Error ? error.message : "파일을 불러오지 못했습니다." }, { status: 400 }); }

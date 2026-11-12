@@ -1,0 +1,8 @@
+import {writeFile,mkdir} from "node:fs/promises";
+import {spcReference,spcSources} from "../src/lib/spc-reference";
+import {spcRules} from "../src/lib/spc-rules";
+async function main(){const lines=["# 통계적 공정관리 용어·계산식 · 6시그마","","정의·분모·단위·적용 조건을 함께 확인합니다. 최소값·최대값 표기를 사용합니다.",""];
+for(const section of spcReference){lines.push("## "+section.title,"","| 용어 | 정의 | 계산식·방법 | 예제·조건 |","| --- | --- | --- | --- |");for(const e of section.entries)lines.push(`| ${e.term} | ${e.definition} | ${e.formula} | ${e.note} |`);lines.push("");}
+lines.push("## 관리도 이상 판단 기준","","| 규칙 | 기준 | 해석 | 조치 |","| --- | --- | --- | --- |");for(const r of spcRules)lines.push(`| ${r.id} | ${r.criterion} | ${r.meaning} | ${r.action} |`);
+lines.push("","## 조치 기준","","제공 교재 26~33쪽의 관리도 구성·산포·검증·이탈 처리 원칙을 기준으로 작성했습니다.","","1. 시료·부분군·시각·로트·설비·규칙·현재 한계를 기록합니다.","2. R/S/MR 산포 이상 시 평균의 안정 판정을 보류합니다.","3. 입력·측정 오류와 영향 범위를 확인하고 책임자에게 알립니다. 위험에 따라 공정·출하 보류 및 영향품 식별·격리·재검사를 수행합니다.","4. 1차 조치로 특별원인을 제거하고 공정을 안정화합니다. OOS는 별도 부적합품 절차로 처리합니다.","5. 2차 조치로 근본원인·재발방지·담당자·기한·효과를 기록하고 관리계획과 표준작업을 갱신합니다.","6. 수율 상승·결점 감소 같은 개선 방향의 변화도 원인을 검증하고 유지 조건을 표준화합니다.","7. 조치·원인·승인이 확인된 초기 기준선의 사본에서만 제외 사유를 기록하고 재계산합니다. 미조치 점을 임의로 제외하지 않고 원문을 보존합니다.","8. 승인된 기간·표본수로 효과를 검증하고 책임자 승인 후 재개합니다. 한 번 정상이라고 자동 해제하지 않습니다.","","## 출처","");for(const s of spcSources)lines.push(`- [${s.title}](${s.url})`);await mkdir("public/reference",{recursive:true});await writeFile("docs/spc-reference.md",lines.join("\n"));await writeFile("public/reference/SPC-용어-계산식.md",lines.join("\n"));console.log("Generated complete glossary and formula guide",spcReference.reduce((n,s)=>n+s.entries.length,0));}
+main().catch(e=>{console.error(e);process.exitCode=1});
