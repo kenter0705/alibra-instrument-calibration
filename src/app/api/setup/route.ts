@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword, makeSession, SESSION_DURATION_SECONDS } from "@/lib/auth";
 export const runtime="nodejs";
 export async function POST(request: Request) {
-  if (!IS_CLASSROOM || !loopbackRequest(request) || !sameOriginRequest(request)) return Response.json({error:"서버 PC의 로컬 주소에서만 최초 등록할 수 있습니다."},{status:403});
+  if (!loopbackRequest(request) || !sameOriginRequest(request)) return Response.json({error:"서버 PC의 로컬 주소에서만 최초 등록할 수 있습니다."},{status:403});
   if (await prisma.userAccount.count() > 0) return Response.json({error:"관리자 등록이 이미 완료됐습니다."},{status:409});
   const form=await request.formData();const supplied=Buffer.from(String(form.get("setupToken")||""));const token=await readFile(getDataPath("setup","first-admin-token.txt"),"utf8").then(value=>value.trim()).catch(()=>"");const expected=Buffer.from(token);
   if(!token || supplied.length!==expected.length || !timingSafeEqual(supplied,expected))return Response.json({error:"설치 PC의 바탕화면 바로가기에서 최초 등록을 시작하세요."},{status:403});
