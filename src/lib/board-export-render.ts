@@ -32,6 +32,19 @@ export async function postsExcel(title: string, records: ExportRecord[]) {
   for (const record of records) { const row=summary.addRow({ id: record.id, title: postText(record.title), writtenAt: record.writtenAt });row.height=Math.min(400,Math.max(28,visibleLines(postText(record.title),55)*14+8)); }
   summary.autoFilter = { from: "A1", to: "C1" }; summary.views = [{ state: "frozen", ySplit: 1 }];
   const body = workbook.addWorksheet("게시글 전체 내용"); body.columns = [{ header: "자료 번호", width: 28 }, { header: "제목", width: 38 }, { header: "항목", width: 27 }, { header: "내용", width: 90 }]; body.views = [{ state: "frozen", ySplit: 1 }];
+  const columns = [...new Map(records.flatMap(record => record.fields.filter(field => field.key !== "id").map(field => [field.key, field.label] as const))).entries()];
+  const matrix = workbook.addWorksheet("전체 항목 표");
+  matrix.columns = [{ header: "자료 번호", width: 28 }, { header: "제목", width: 38 }, { header: "내용 순번", width: 14 }, ...columns.map(([, label]) => ({ header: label, width: 32 }))];
+  matrix.views = [{ state: "frozen", xSplit: 2, ySplit: 1 }];
+  for (const record of records) {
+    const fields = new Map(record.fields.map(field => [field.key, chunks(exportValue(field.value))]));
+    const count = Math.max(1, ...columns.map(([key]) => fields.get(key)?.length || 0));
+    for (let index = 0; index < count; index++) {
+      const values = columns.map(([key]) => fields.get(key)?.[index] || "");
+      const row = matrix.addRow([record.id, postText(record.title), `${index + 1}/${count}`, ...values]);
+      row.height = Math.min(400, Math.max(30, Math.max(...values.map(value => visibleLines(value, 30)), visibleLines(postText(record.title), 38)) * 14 + 8));
+    }
+  }
   for (const record of records) {
     const section = body.addRow([record.id, postText(record.title), "게시글", ""]); section.height=Math.min(400,Math.max(30,visibleLines(postText(record.title),38)*14+8)); section.font = { name: "맑은 고딕", bold: true, color: { argb: "FF17365D" } }; section.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEAF0F8" } };
     for (const field of record.fields) {
@@ -39,7 +52,7 @@ export async function postsExcel(title: string, records: ExportRecord[]) {
       pieces.forEach((piece, i) => { const row = body.addRow([record.id, postText(record.title), field.label + (pieces.length > 1 ? ` (${i + 1}/${pieces.length})` : ""), piece]);row.height=Math.min(400,Math.max(30,Math.max(visibleLines(piece,85),visibleLines(postText(record.title),38),visibleLines(field.label,27))*14+8)); });
     }
   }
-  for (const sheet of [summary, body]) { sheet.properties.defaultRowHeight = 25; sheet.eachRow(row => row.eachCell(cell => { cell.font = { name: "맑은 고딕", size: 10, ...cell.font }; cell.alignment = { vertical: "top", wrapText: true }; })); const header = sheet.getRow(1); header.height = 28; header.font = { name: "맑은 고딕", bold: true, color: { argb: "FFFFFFFF" } }; header.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF17365D" } }; sheet.pageSetup = { paperSize: 9, orientation: "landscape", fitToPage: true, fitToWidth: 1, fitToHeight: 0 }; }
+  for (const sheet of [summary, body, matrix]) { sheet.properties.defaultRowHeight = 25; sheet.eachRow(row => row.eachCell(cell => { cell.font = { name: "맑은 고딕", size: 10, ...cell.font }; cell.alignment = { vertical: "top", wrapText: true }; })); const header = sheet.getRow(1); header.height = 28; header.font = { name: "맑은 고딕", bold: true, color: { argb: "FFFFFFFF" } }; header.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF17365D" } }; sheet.pageSetup = { paperSize: 9, orientation: "landscape", fitToPage: true, fitToWidth: 1, fitToHeight: 0 }; }
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }
 async function koreanFonts() {
