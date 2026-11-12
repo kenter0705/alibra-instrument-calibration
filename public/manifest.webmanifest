@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "CALIBRA 계측기 검교정 관리",
-  "short_name": "CALIBRA",
+  "name": "CALIBRA 퍼스널",
+  "short_name": "CALIBRA 퍼스널",
   "description": "계측기 검교정 이력관리 통합 시스템",
   "lang": "ko-KR",
   "start_url": "/",
@@ -9,5 +9,12 @@
   "display": "standalone",
   "background_color": "#f4f7fb",
   "theme_color": "#17345c",
-  "icons": [{"src":"/calibra-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+  "icons": [
+    {
+      "src": "/calibra-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }

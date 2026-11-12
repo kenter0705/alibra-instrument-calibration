@@ -87,6 +87,6 @@ try {
 } catch {
   $log=Join-Path $env:LOCALAPPDATA 'CALIBRA-Classroom\startup-error.log'
   try{Add-Content -LiteralPath $log -Value ((Get-Date -Format s)+' '+$_.Exception.Message) -Encoding UTF8}catch{}
-  try{Add-Type -AssemblyName System.Windows.Forms;[Windows.Forms.MessageBox]::Show("CALIBRA Classroom startup failed. $($_.Exception.Message)`nLog: $log",'CALIBRA Classroom','OK','Error')|Out-Null}catch{}
+  try{Add-Type -AssemblyName System.Windows.Forms;[Windows.Forms.MessageBox]::Show("CALIBRA Classroom startup failed. $($_.Exception.Message)`nLog: $log",'CALIBRA 멀티','OK','Error')|Out-Null}catch{}
   exit 1
 }
