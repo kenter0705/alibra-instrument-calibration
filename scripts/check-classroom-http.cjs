@@ -1,4 +1,4 @@
-const assert = require('node:assert/strict');
+﻿const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -52,7 +52,7 @@ async function cloneEmptySchema() {
 async function run() {
   const started = performance.now();
   const health=await (await request('/api/health')).json();
-  assert.equal(health.edition,'classroom');assert.equal(health.version,'0.2.0');
+  assert.equal(health.edition,'classroom');assert.equal(health.version,'0.2.1');
   const cookies = await Promise.all(Array.from({ length: 25 }, async (_, i) => {
     const response = await request('/api/auth/password', null, { method: 'POST', body: new URLSearchParams({ email: `classroom-qa-${i}@example.invalid`, password }) });
     assert.equal(response.status, 303);
