@@ -1,3 +1,5 @@
+import { requestLink } from "@/lib/request-origin";
+import { SESSION_COOKIE, appCookie } from "@/lib/app-edition";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { OAuth2Client } from "google-auth-library";
 import { cookies } from "next/headers";
@@ -6,24 +8,24 @@ import { prisma } from "@/lib/prisma";
 import { APPROVAL_TICKET_SECONDS, hashPassword, makeApprovalTicket, makeSession, SESSION_DURATION_SECONDS } from "@/lib/auth";
 
 export const runtime = "nodejs";
-const sessionCookie = "calibra_session";
+const sessionCookie = SESSION_COOKIE;
 const secure = process.env.APP_HTTPS === "true";
-function go(request: NextRequest, path: string) { return NextResponse.redirect(new URL(path, request.url)); }
+function go(request: NextRequest, path: string) { return NextResponse.redirect(requestLink(request, path)); }
 function equal(a: string, b: string) { const x=Buffer.from(a), y=Buffer.from(b); return x.length===y.length && timingSafeEqual(x,y); }
-function pending(request: NextRequest, userId: string) { const response=go(request,"/login?pending=1"); response.cookies.set("calibra_approval_ticket",makeApprovalTicket(userId),{httpOnly:true,secure,sameSite:"lax",path:"/",maxAge:APPROVAL_TICKET_SECONDS}); return response; }
+function pending(request: NextRequest, userId: string) { const response=go(request,"/login?pending=1"); response.cookies.set(appCookie("approval_ticket"),makeApprovalTicket(userId),{httpOnly:true,secure,sameSite:"lax",path:"/",maxAge:APPROVAL_TICKET_SECONDS}); return response; }
 
 export async function GET(request: NextRequest) {
   const params=request.nextUrl.searchParams;
   const code=params.get("code"), state=params.get("state");
   const jar=await cookies();
-  const expectedState=jar.get("calibra_google_state")?.value||"";
-  const expectedNonce=jar.get("calibra_google_nonce")?.value||"";
-  jar.delete("calibra_google_state"); jar.delete("calibra_google_nonce");
+  const expectedState=jar.get(appCookie("google_state"))?.value||"";
+  const expectedNonce=jar.get(appCookie("google_nonce"))?.value||"";
+  jar.delete(appCookie("google_state")); jar.delete(appCookie("google_nonce"));
   if(params.has("error")) return go(request,"/login?error=Google%20로그인이%20취소되었습니다");
   if(!code||!state||!expectedState||!expectedNonce||!equal(state,expectedState)) return go(request,"/login?error=Google%20로그인%20요청%20검증에%20실패했습니다");
   const clientId=process.env.GOOGLE_CLIENT_ID, clientSecret=process.env.GOOGLE_CLIENT_SECRET;
   if(!clientId||!clientSecret) return go(request,"/login?error=Google%20OAuth%20설정이%20필요합니다");
-  const redirectUri=process.env.GOOGLE_REDIRECT_URI||new URL("/api/auth/google/callback",request.url).toString();
+  const redirectUri=process.env.GOOGLE_REDIRECT_URI||requestLink(request, "/api/auth/google/callback").toString();
   try {
     const client=new OAuth2Client(clientId,clientSecret,redirectUri);
     const {tokens}=await client.getToken(code);
@@ -50,7 +52,7 @@ export async function GET(request: NextRequest) {
         user=await prisma.userAccount.create({data:{username:email,email,googleSubject:claims.sub,displayName:claims.name||email,companyName:"",department:"",employeeNo:null,phone:"",passwordHash:hashPassword(randomBytes(32).toString("hex")),profileComplete:true,role:"관리자"}});
       }
     }
-    const response=NextResponse.redirect(new URL(user.profileComplete ? "/" : "/account/profile",request.url));
+    const response=NextResponse.redirect(requestLink(request, user.profileComplete ? "/" : "/account/profile"));
     response.cookies.set(sessionCookie,makeSession(user.id),{httpOnly:true,secure,sameSite:"lax",path:"/",maxAge:SESSION_DURATION_SECONDS});
     return response;
   } catch {

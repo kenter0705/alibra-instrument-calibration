@@ -4,8 +4,8 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const qa = path.join(root, 'dist', 'classroom-qa');
-const { PrismaClient } = require(path.join(root, 'src/generated/prisma'));
-const base = 'http://127.0.0.1:3104';
+const { PrismaClient, Prisma } = require(path.join(root, 'src/generated/prisma'));
+const base = 'http://127.0.0.1:4104';
 const password = 'classroom-QA-only-2026';
 
 async function initialize() {
@@ -33,12 +33,31 @@ async function request(route, cookie, options = {}) {
   const response = await fetch(base + route, { ...options, redirect: 'manual', signal: AbortSignal.timeout(60000), headers: { ...(cookie ? { Cookie: cookie } : {}), ...(options.headers || {}) } });
   return response;
 }
+async function cloneEmptySchema() {
+  const source = process.env.CALIBRA_SCHEMA_SOURCE_DB;
+  assert.ok(source, 'Specify a read-only schema source');
+  const { DatabaseSync } = require('node:sqlite');
+  const original = new DatabaseSync(source, { readOnly: true });
+  const target = new DatabaseSync(path.join(qa, 'test.db'));
+  const allowed = new Set(Prisma.dmmf.datamodel.models.map(model => model.dbName || model.name));
+  try {
+    for (const row of original.prepare("SELECT name, tbl_name, type, sql FROM sqlite_master WHERE sql IS NOT NULL AND type IN ('table','index') ORDER BY type DESC").all()) {
+      if (!allowed.has(row.tbl_name) || row.tbl_name === 'UserAccount') continue;
+      const sql = row.sql.replace(/^CREATE TABLE /i, 'CREATE TABLE IF NOT EXISTS ').replace(/^CREATE UNIQUE INDEX /i, 'CREATE UNIQUE INDEX IF NOT EXISTS ').replace(/^CREATE INDEX /i, 'CREATE INDEX IF NOT EXISTS ');
+      target.exec(sql);
+    }
+  } finally { original.close(); target.close(); }
+  console.log('Copied table structure only through a read-only connection; no user records copied or modified');
+}
 async function run() {
   const started = performance.now();
+  const health=await (await request('/api/health')).json();
+  assert.equal(health.edition,'classroom');assert.equal(health.version,'0.2.0');
   const cookies = await Promise.all(Array.from({ length: 25 }, async (_, i) => {
     const response = await request('/api/auth/password', null, { method: 'POST', body: new URLSearchParams({ email: `classroom-qa-${i}@example.invalid`, password }) });
     assert.equal(response.status, 303);
-    const cookie = response.headers.get('set-cookie')?.match(/calibra_session=[^;]+/)?.[0];
+    assert.equal(new URL(response.headers.get('location')).origin,base);
+    const cookie = response.headers.get('set-cookie')?.match(/calibra_classroom_session=[^;]+/)?.[0];
     assert.ok(cookie, `login ${i}`); return cookie;
   }));
   const loginMs = Math.round(performance.now() - started);
@@ -84,4 +103,4 @@ async function run() {
   const report = { users: 25, loginMs, saveP95Ms: Math.round(timings[23]), saveMaxMs: Math.round(timings[24]), totalMs: Math.round(performance.now() - started), checks: ['25 distinct account logins', '25 shared-page requests', '25 original-data loads', '25 concurrent Save As writes with distinct authors', 'original dataset and original upload bytes unchanged', 'CSV, XLSX count data and JSON paired data imported correctly', 'unauthenticated, non-admin, cross-origin, delete and invalid-data requests rejected', 'admin sharing setting persisted only in test directory'] };
   await fs.writeFile(path.join(root, '.calibra-classroom-qa-report.json'), JSON.stringify(report, null, 2)); console.log(JSON.stringify(report));
 }
-(process.argv.includes('--initialize') ? initialize() : run()).catch(error => { console.error(error); process.exitCode = 1; });
+(process.argv.includes('--initialize') ? initialize() : process.argv.includes('--clone-schema') ? cloneEmptySchema() : run()).catch(error => { console.error(error); process.exitCode = 1; });

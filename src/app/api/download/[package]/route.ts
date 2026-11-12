@@ -1,3 +1,4 @@
+import { APP_VERSION, IS_CLASSROOM } from "@/lib/app-edition";
 import { createReadStream } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import { Readable } from "node:stream";
@@ -20,6 +21,11 @@ async function findPackage(packageName: string) {
 }
 
 async function fileResponse(request: Request, packageName: string, headOnly = false) {
+  if(packageName === "windows") {
+    const tag=IS_CLASSROOM ? `classroom-v${APP_VERSION}` : `v${APP_VERSION}`;
+    const edition=IS_CLASSROOM ? "Classroom" : "Personal";
+    return Response.redirect(`https://github.com/kenter0705/alibra-instrument-calibration/releases/download/${tag}/CALIBRA-${edition}-Setup-v${APP_VERSION}-20261112.zip`,307);
+  }
   const fileName = await findPackage(packageName);
   if (!fileName) return new Response("Not found", { status: 404 });
 

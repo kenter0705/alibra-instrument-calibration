@@ -1,3 +1,4 @@
+import { sameOriginRequest } from "@/lib/request-origin";
 import { educationUser } from "@/lib/education-auth";
 import { listDatasets, readDataset, saveDataset } from "@/lib/education-store";
 export const runtime = "nodejs";
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   let user;
   try { user = await educationUser(); } catch { return Response.json({ error: "로그인이 필요합니다." }, { status: 401 }); }
-  if (request.headers.get("origin") !== new URL(request.url).origin) return Response.json({ error: "현재 CALIBRA 화면에서 저장하세요." }, { status: 403 });
+  if (!sameOriginRequest(request)) return Response.json({ error: "현재 CALIBRA 화면에서 저장하세요." }, { status: 403 });
   try {
     const text = await request.text(); if (text.length > 5_000_000) throw new Error("데이터가 너무 큽니다. 5000행 이하로 나눠 저장하세요.");
     return Response.json(await saveDataset(JSON.parse(text), user), { status: 201 });

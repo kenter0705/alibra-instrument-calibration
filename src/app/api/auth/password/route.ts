@@ -1,15 +1,17 @@
+import { requestLink } from "@/lib/request-origin";
+import { SESSION_COOKIE, appCookie } from "@/lib/app-edition";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { makeSession, verifyPassword, SESSION_DURATION_SECONDS } from "@/lib/auth";
 
 export const runtime = "nodejs";
-const cookieName = "calibra_session";
+const cookieName = SESSION_COOKIE;
 
 export async function POST(request: NextRequest) {
   const form = await request.formData();
   const email = String(form.get("email") || "").trim().toLowerCase();
   const password = String(form.get("password") || "");
-  const loginUrl = new URL("/login", request.url);
+  const loginUrl = requestLink(request, "/login");
 
   if (!email || !password) {
     loginUrl.searchParams.set("error", "이메일 주소와 비밀번호를 입력해 주세요.");
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.redirect(loginUrl, 303);
   }
 
-  const response = NextResponse.redirect(new URL(account.profileComplete ? "/" : "/account/profile", request.url), 303);
+  const response = NextResponse.redirect(requestLink(request, account.profileComplete ? "/" : "/account/profile"), 303);
   response.cookies.set(cookieName, makeSession(account.id), {
     httpOnly: true,
     secure: process.env.APP_HTTPS === "true",
