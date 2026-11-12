@@ -1,11 +1,13 @@
 "use server";
+import { SESSION_COOKIE, appCookie } from "@/lib/app-edition";
+
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { validSession } from "@/lib/auth";
 
 async function getActiveUser() {
-  const token = (await cookies()).get("calibra_session")?.value || "";
+  const token = (await cookies()).get(SESSION_COOKIE)?.value || "";
   if (!validSession(token)) redirect("/login");
   const user = await prisma.userAccount.findUnique({ where: { id: token.split(".")[0] } });
   if (!user?.active) redirect("/login");

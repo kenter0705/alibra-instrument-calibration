@@ -1,3 +1,5 @@
+import { requestLink } from "@/lib/request-origin";
+import { SESSION_COOKIE, appCookie } from "@/lib/app-edition";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { APPROVAL_TICKET_SECONDS, hashPassword, makeApprovalTicket } from "@/lib/auth";
@@ -14,7 +16,7 @@ export async function POST(request: NextRequest) {
   const displayName = String(form.get("displayName") || "").trim();
   const employeeNo = String(form.get("employeeNo") || "").trim();
   const phone = String(form.get("phone") || "").trim();
-  const destination = new URL("/signup", request.url);
+  const destination = requestLink(request, "/signup");
   const fail = (message: string) => { destination.searchParams.set("error", message); return NextResponse.redirect(destination, 303); };
 
   if (!email || !email.includes("@") || !companyName || !department || !displayName || !employeeNo || !phone) return fail("모든 가입 정보를 입력해 주세요.");
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
     username: email, email, displayName, companyName, department, employeeNo, phone,
     passwordHash: hashPassword(password), profileComplete: true, role: "가입 대기", active: false,
   } });
-  const response = NextResponse.redirect(new URL("/signup?submitted=1", request.url), 303);
-  response.cookies.set("calibra_approval_ticket", makeApprovalTicket(account.id), { httpOnly:true, secure:process.env.APP_HTTPS === "true", sameSite:"lax", path:"/", maxAge:APPROVAL_TICKET_SECONDS });
+  const response = NextResponse.redirect(requestLink(request, "/signup?submitted=1"), 303);
+  response.cookies.set(appCookie("approval_ticket"), makeApprovalTicket(account.id), { httpOnly:true, secure:process.env.APP_HTTPS === "true", sameSite:"lax", path:"/", maxAge:APPROVAL_TICKET_SECONDS });
   return response;
 }

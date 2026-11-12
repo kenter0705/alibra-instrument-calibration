@@ -1,8 +1,9 @@
+import { SESSION_COOKIE, appCookie } from "@/lib/app-edition";
 import { cookies } from "next/headers";
 import { validSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 export async function educationUser() {
-  const token = (await cookies()).get("calibra_session")?.value || "";
+  const token = (await cookies()).get(SESSION_COOKIE)?.value || "";
   if (!validSession(token)) throw new Error("로그인이 필요합니다.");
   const user = await prisma.userAccount.findUnique({ where: { id: token.split(".")[0] }, select: { id: true, displayName: true, role: true, active: true } });
   if (!user?.active) throw new Error("사용 가능한 계정으로 로그인하세요.");

@@ -1,3 +1,4 @@
+import { sameOriginRequest } from "@/lib/request-origin";
 import ExcelJS from "exceljs";
 import { Readable } from "node:stream";
 import path from "node:path";
@@ -8,7 +9,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   let user;
   try { user = await educationUser(); } catch { return Response.json({ error: "로그인이 필요합니다." }, { status: 401 }); }
-  if (request.headers.get("origin") !== new URL(request.url).origin) return Response.json({ error: "현재 화면에서 불러오세요." }, { status: 403 });
+  if (!sameOriginRequest(request)) return Response.json({ error: "현재 화면에서 불러오세요." }, { status: 403 });
   try {
     const form = await request.formData(); const upload = form.get("file");
     if (!(upload instanceof File) || !upload.size || upload.size > 10 * 1024 * 1024) throw new Error("10MB 이하의 CSV, XLSX, JSON 파일을 선택하세요.");
