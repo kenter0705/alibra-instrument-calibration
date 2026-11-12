@@ -7,7 +7,7 @@ $release=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'active-release.json'
 $edition=[string]$package.calibraEdition
 if($edition -notin @('personal','classroom') -or $release.edition -ne $edition -or $package.version -ne $release.version){throw 'Not a matching classroom package.'}
 $directory=if($edition -eq 'classroom'){'CALIBRA-Classroom'}else{'CALIBRA'}
-$appName=if($edition -eq 'classroom'){'CALIBRA 다인·교육용'}else{'CALIBRA 개인용'}
+$appName=if($edition -eq 'classroom'){'CALIBRA 멀티'}else{'CALIBRA 퍼스널'}
 $installRoot=Join-Path $env:LOCALAPPDATA ('Programs\'+$directory)
 $dataRoot=Join-Path $env:LOCALAPPDATA $directory
 $appRoot=Join-Path $installRoot 'app'
@@ -32,9 +32,10 @@ if(Test-Path -LiteralPath $db){
   New-Item -ItemType Directory -Force -Path $backup|Out-Null
   foreach($suffix in @('','-wal','-shm')){if(Test-Path -LiteralPath ($db+$suffix)){Copy-Item -LiteralPath ($db+$suffix) -Destination (Join-Path $backup ('dev.db'+$suffix))}}
 }
-& robocopy $payload $appRoot /E /XJ /R:1 /W:1 /NFL /NDL /NJH /NJS /NC /NS|Out-Null
+& robocopy $payload $appRoot /E /XJ /MT:8 /R:1 /W:1 /NFL /NDL /NJH /NJS /NC /NS|Out-Null
 if($LASTEXITCODE -ge 8){throw 'Classroom application copy failed.'}
-Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'runtime\node.exe') -Destination $node -Force
+$payloadRuntime=Join-Path $PSScriptRoot 'runtime\node.exe'
+if(-not (Test-Path -LiteralPath $node) -or (Get-FileHash -LiteralPath $payloadRuntime -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $node -Algorithm SHA256).Hash){Copy-Item -LiteralPath $payloadRuntime -Destination $node -Force}
 $modules=Join-Path $appRoot 'node_modules'
 $links=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'junctions.json') -Raw|ConvertFrom-Json
 foreach($entry in $links){
@@ -66,6 +67,10 @@ $shortcut=$shell.CreateShortcut((Join-Path ([Environment]::GetFolderPath('Deskto
 $shortcut.TargetPath=Join-Path $env:SystemRoot 'System32\wscript.exe'
 $shortcut.Arguments='"'+(Join-Path $dataRoot 'Start-CALIBRA.vbs')+'"'
 $shortcut.WorkingDirectory=$appRoot;$shortcut.Description=$appName+' v'+$release.version
+foreach($oldName in @('CALIBRA.lnk','CALIBRA 개인용.lnk','CALIBRA 다인·교육용.lnk')){
+ $oldPath=Join-Path ([Environment]::GetFolderPath('Desktop')) $oldName
+ if(Test-Path -LiteralPath $oldPath){$old=$shell.CreateShortcut($oldPath);if($old.Arguments -eq $shortcut.Arguments -and $old.TargetPath -eq $shortcut.TargetPath){Remove-Item -LiteralPath $oldPath -Force}}
+}
 $shortcut.IconLocation=Join-Path $appRoot 'public\calibra.ico';$shortcut.Save()
 }
 if(-not $NoLaunch){Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\wscript.exe') -ArgumentList ('"'+(Join-Path $dataRoot 'Start-CALIBRA.vbs')+'"') -WindowStyle Hidden}
