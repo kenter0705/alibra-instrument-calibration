@@ -1,3 +1,4 @@
+import { SESSION_COOKIE } from "@/lib/app-edition";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
-  const token = (await cookies()).get("calibra_session")?.value || "";
+  const token = (await cookies()).get(SESSION_COOKIE)?.value || "";
   if (!validSession(token)) redirect("/login");
   const user = await prisma.userAccount.findUnique({ where: { id: token.split(".")[0] } });
   if (!user?.active) redirect("/login");

@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; pending?: string; withdrawn?: string }> }) {
-  if (IS_CLASSROOM && await prisma.userAccount.count() === 0) redirect("/setup");
+  if (await prisma.userAccount.count() === 0) redirect("/setup");
   const { error, pending, withdrawn } = await searchParams;
   const googleReady = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
