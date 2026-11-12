@@ -34,6 +34,11 @@ async function main() {
     assert.deepEqual(await readFile(originalPath), before);
     assert.deepEqual(await readFile(path.join(temporary, "education-datasets/original-files", original.originalFile!)), bytes);
     await assert.rejects(() => saveDataset({ ...exampleData("histogram"), title: original.title, parentId: original.id }, { id: "student", displayName: "학생" }));
+    for (const title of ["  보존할 원본  ", "보존할 원본.JSON", "보존할   원본.csv"]) {
+      await assert.rejects(() => saveDataset({ ...exampleData("histogram"), title, parentId: original.id }, { id: "student", displayName: "학생" }));
+    }
+    await assert.rejects(() => import("node:fs/promises").then(fs => fs.writeFile(originalPath, "overwrite")), "The original must be read-only on the installation filesystem");
+    assert.deepEqual(await readFile(originalPath), before);
     await assert.rejects(() => readDataset("../../outside"));
     console.log("PASS: all 14 chart templates and invalid input rules; strict IP parsing; 25 concurrent Save As writes; unique versions; original JSON and uploaded bytes unchanged; traversal rejected.");
   } finally {

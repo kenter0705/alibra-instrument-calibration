@@ -83,6 +83,6 @@ try {
 } catch {
   $log=Join-Path $env:LOCALAPPDATA 'CALIBRA\startup-error.log'
   try{Add-Content -LiteralPath $log -Value ((Get-Date -Format s)+' '+$_.Exception.Message) -Encoding UTF8}catch{}
-  try{Add-Type -AssemblyName System.Windows.Forms;[Windows.Forms.MessageBox]::Show("CALIBRA Personal startup failed. $($_.Exception.Message)`nLog: $log",'CALIBRA Personal','OK','Error')|Out-Null}catch{}
+  try{Add-Type -AssemblyName System.Windows.Forms;[Windows.Forms.MessageBox]::Show("CALIBRA Personal startup failed. $($_.Exception.Message)`nLog: $log",'CALIBRA 퍼스널','OK','Error')|Out-Null}catch{}
   exit 1
 }
