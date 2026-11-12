@@ -13,6 +13,12 @@ internal static class SetupLauncher
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         string root = AppDomain.CurrentDomain.BaseDirectory;
+        string appName = "CALIBRA";
+        string manifest = Path.Combine(root, "active-release.json");
+        if (File.Exists(manifest))
+        {
+            appName = System.Text.RegularExpressions.Regex.IsMatch(File.ReadAllText(manifest), @"""edition""\s*:\s*""classroom""") ? "CALIBRA 멀티" : "CALIBRA 퍼스널";
+        }
         string script = Path.Combine(root, "설치하기.ps1");
         if (!File.Exists(script))
         {
@@ -21,7 +27,7 @@ internal static class SetupLauncher
         }
 
         Form form = new Form();
-        form.Text = "CALIBRA 설치";
+        form.Text = appName + " 설치";
         form.FormBorderStyle = FormBorderStyle.FixedDialog;
         form.StartPosition = FormStartPosition.CenterScreen;
         form.ClientSize = new Size(460, 170);
@@ -31,7 +37,7 @@ internal static class SetupLauncher
         form.BackColor = Color.White;
 
         Label title = new Label();
-        title.Text = "CALIBRA · 계측기 검교정 이력관리";
+        title.Text = appName + " 설치";
         title.Font = new Font("Malgun Gothic", 14, FontStyle.Bold);
         title.ForeColor = Color.FromArgb(31, 58, 93);
         title.Location = new Point(24, 22);
@@ -90,7 +96,7 @@ internal static class SetupLauncher
                 MessageBox.Show("설치가 완료되지 않았습니다.\n\n" + detail, "CALIBRA 설치 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            MessageBox.Show("설치가 완료되었습니다. 바탕화면의 CALIBRA 바로가기로 언제든 홈 화면을 열 수 있습니다.", "CALIBRA 설치 완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("설치가 완료되었습니다. 바탕화면의 " + appName + " 바로가기로 홈 화면을 열 수 있습니다.", appName + " 설치 완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
         };
         worker.RunWorkerAsync();
         Application.Run(form);

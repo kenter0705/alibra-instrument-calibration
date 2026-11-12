@@ -1,0 +1,229 @@
+{
+  "version": 1,
+  "samples": [
+    {
+      "chart": "histogram",
+      "id": "f0000000-0000-4000-8000-000000000001",
+      "title": "01_히스토그램_원본",
+      "type": "계량치",
+      "files": [
+        "01_히스토그램_원본.json",
+        "01_히스토그램_원본.csv",
+        "01_히스토그램_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "5c58afd6ad33b40688cefd214ede6d06390c77961640558ac234ee683c767b9d",
+        "csv": "f6a7a03ec4ea2fc1dbe8c82da9cd34ade2093aa9d635139992029167aa94b243",
+        "xlsx": "dc5360ed597ae06840d8f9b0f135e0b93e6e8607f95929f1e9c389b653ddd7b5"
+      }
+    },
+    {
+      "chart": "capability",
+      "id": "f0000000-0000-4000-8000-000000000002",
+      "title": "02_공정능력·분포_원본",
+      "type": "계량치",
+      "files": [
+        "02_공정능력·분포_원본.json",
+        "02_공정능력·분포_원본.csv",
+        "02_공정능력·분포_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "73e7c71cd4d5c60ff592d8d3ef3699e2930552cbb6e404221f3472f021bb8a89",
+        "csv": "f6a7a03ec4ea2fc1dbe8c82da9cd34ade2093aa9d635139992029167aa94b243",
+        "xlsx": "68b1d1569f0043212dd92b4656079a6c48e6ca6317e2ad7492180db92aa0f5ef"
+      }
+    },
+    {
+      "chart": "imr",
+      "id": "f0000000-0000-4000-8000-000000000003",
+      "title": "03_I-MR_관리도_원본",
+      "type": "계량치",
+      "files": [
+        "03_I-MR_관리도_원본.json",
+        "03_I-MR_관리도_원본.csv",
+        "03_I-MR_관리도_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "3bfe45cc2db2172f03c6b4992a20f0f7f28bc45eb6e50dafb2378cfd9013628a",
+        "csv": "cc6dc3546b0616e3faf77cdc4263858985161e98d0cf87b86a7b88c847b4d0f9",
+        "xlsx": "9740257282c3ece5eecdacece38c6e64e003739e63dd16b13774fde0be91feb4"
+      }
+    },
+    {
+      "chart": "xbar",
+      "id": "f0000000-0000-4000-8000-000000000004",
+      "title": "04_X̄-R_관리도_·_부분군_5개_원본",
+      "type": "계량치",
+      "files": [
+        "04_X̄-R_관리도_·_부분군_5개_원본.json",
+        "04_X̄-R_관리도_·_부분군_5개_원본.csv",
+        "04_X̄-R_관리도_·_부분군_5개_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "bde70b1e9b7c2849800427e7dfe812d122c8ff5795b902fb26bde430a880285c",
+        "csv": "9e8d4c7325e94d502d0376691e18a3cf3589b6876b4f813892463c2962ace49e",
+        "xlsx": "07e8c2f0c2e5991a1bcb03e6aed99999526f5771ab127fcd7571f1cc035ebe83"
+      }
+    },
+    {
+      "chart": "scatter",
+      "id": "f0000000-0000-4000-8000-000000000005",
+      "title": "05_산점도·상관_원본",
+      "type": "계량치",
+      "files": [
+        "05_산점도·상관_원본.json",
+        "05_산점도·상관_원본.csv",
+        "05_산점도·상관_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "2b1bec4e10b610eb301f71032a0a43ccfcedb0b441792fb94508b8a1773517ce",
+        "csv": "0550e0c44b6fe390db545f00bd5e7345e7b1cd77cade53bce0751b1d1b666d9d",
+        "xlsx": "9366155e8d0e015eb52c0edd4c102fb1ae76a5c6bd9890aab8388cc40700540e"
+      }
+    },
+    {
+      "chart": "stratification",
+      "id": "f0000000-0000-4000-8000-000000000006",
+      "title": "06_층별_원본",
+      "type": "계량치",
+      "files": [
+        "06_층별_원본.json",
+        "06_층별_원본.csv",
+        "06_층별_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "44ebf9e85b1272ea0e18dc55a0c2737ea58a4121d950bc3af2c0e9a1f47fc58d",
+        "csv": "4ec384ec71084dd98904e82dae036fd8113d6bb12c9f66f674b13f614af78796",
+        "xlsx": "64fd78acebdc16f1fcb12d9dd1ca9343c7b6df9d86a4437256d68fd1ac79c70e"
+      }
+    },
+    {
+      "chart": "p",
+      "id": "f0000000-0000-4000-8000-000000000007",
+      "title": "07_p_관리도_·_불량률_원본",
+      "type": "계수치",
+      "files": [
+        "07_p_관리도_·_불량률_원본.json",
+        "07_p_관리도_·_불량률_원본.csv",
+        "07_p_관리도_·_불량률_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "35127245c110479b3156cb4733b79dd3eaabbc19ae77a38920000b4d6ed1106b",
+        "csv": "44db95b2fa4338585531517b35ed3da010dd82c7f0c476d229ed5fade1bd0578",
+        "xlsx": "74b468ab0c6945e31fe33412b229c6c832088b730f302070670fdd2011441217"
+      }
+    },
+    {
+      "chart": "np",
+      "id": "f0000000-0000-4000-8000-000000000008",
+      "title": "08_np_관리도_·_불량품수_원본",
+      "type": "계수치",
+      "files": [
+        "08_np_관리도_·_불량품수_원본.json",
+        "08_np_관리도_·_불량품수_원본.csv",
+        "08_np_관리도_·_불량품수_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "6295078b37e9074670d7bdca749f1fb09c21212596bd1b43525aa51de0210979",
+        "csv": "1bc96b1d61dca7416cbfe6fe3e33e2d9179eae70bcdb54df8b22a00d70077c2b",
+        "xlsx": "e84dc198f1e8df9dc424314b998e7b93d746e7b3c9dd2e526ae72028d2768f83"
+      }
+    },
+    {
+      "chart": "c",
+      "id": "f0000000-0000-4000-8000-000000000009",
+      "title": "09_c_관리도_·_결점수_원본",
+      "type": "계수치",
+      "files": [
+        "09_c_관리도_·_결점수_원본.json",
+        "09_c_관리도_·_결점수_원본.csv",
+        "09_c_관리도_·_결점수_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "a1c091c06fc4c79351ad50aacf5a1bd354c3d54f74ceae0736d77f6ec03bfc2d",
+        "csv": "7a935649eb0c9fc57e3102169b81fb076114a997c200ac0ee4df4a058ac6d04d",
+        "xlsx": "2d2d3bd15601f31a847a8029d4f52fd478e85b63ef43e6b047706c4b5fe13b06"
+      }
+    },
+    {
+      "chart": "u",
+      "id": "f0000000-0000-4000-8000-000000000010",
+      "title": "10_u_관리도_·_단위당_결점수_원본",
+      "type": "계수치",
+      "files": [
+        "10_u_관리도_·_단위당_결점수_원본.json",
+        "10_u_관리도_·_단위당_결점수_원본.csv",
+        "10_u_관리도_·_단위당_결점수_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "0b7e3a274495b5a71489d16d534958e096df88ddbaba75cf30aadbc56a9682de",
+        "csv": "2f38c37384b0c9e5366b754812761b4704810fdadf2def89742a24af34b5a68a",
+        "xlsx": "2f4516249e7e4438c654b64fe2efe1af3ab7361756e8b71fb6b1fb4f48c27d99"
+      }
+    },
+    {
+      "chart": "pareto",
+      "id": "f0000000-0000-4000-8000-000000000011",
+      "title": "11_파레토도_원본",
+      "type": "계수치",
+      "files": [
+        "11_파레토도_원본.json",
+        "11_파레토도_원본.csv",
+        "11_파레토도_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "7a14f655b2867b1ba46b3f2363ddace7de47f087e95744ad6853ad247831a1ee",
+        "csv": "f18b4cada0b9d8e737ff357eab2fade72349e696b770ed07af0d00bad39e6a99",
+        "xlsx": "6b189d4d556bcee3842b5be1828193dd8c07157d757b7224ec01f9b1b8341933"
+      }
+    },
+    {
+      "chart": "checksheet",
+      "id": "f0000000-0000-4000-8000-000000000012",
+      "title": "12_체크시트_원본",
+      "type": "계수치",
+      "files": [
+        "12_체크시트_원본.json",
+        "12_체크시트_원본.csv",
+        "12_체크시트_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "4c9b5613a6d30bf857ede855021e29aec38151d0691af2ff92d8c58ae3f8bc1c",
+        "csv": "f18b4cada0b9d8e737ff357eab2fade72349e696b770ed07af0d00bad39e6a99",
+        "xlsx": "c8f54878eaf7045aab5ca9e550a9c4feae2df5e255b483c140dc0a2b5dea4108"
+      }
+    },
+    {
+      "chart": "fishbone",
+      "id": "f0000000-0000-4000-8000-000000000013",
+      "title": "13_특성요인도_원본",
+      "type": "원인 분류",
+      "files": [
+        "13_특성요인도_원본.json",
+        "13_특성요인도_원본.csv",
+        "13_특성요인도_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "c0458bd7c3fbfce08205b38e7d1cd1a56f703f0837a5d48517d744c81f35bd4f",
+        "csv": "ea30dbf68191d602fea142546c7317f7788e52986fe413d2742b06bf35f5035d",
+        "xlsx": "6ead5111ca33bda7b282adeb4a485b92067652871ac68b3aa43be478a9d257ba"
+      }
+    },
+    {
+      "chart": "grr",
+      "id": "f0000000-0000-4000-8000-000000000014",
+      "title": "14_Gage_R&R_반복_측정_원본",
+      "type": "계량치",
+      "files": [
+        "14_Gage_R&R_반복_측정_원본.json",
+        "14_Gage_R&R_반복_측정_원본.csv",
+        "14_Gage_R&R_반복_측정_원본.xlsx"
+      ],
+      "sha256": {
+        "json": "8490b64306d5475f88056b48a0afd754d503b203ae0d8a3db4c6b22c01449c93",
+        "csv": "f22b5cb58a75152730149559e7013101bb66d6db71dec12ff43c77e5ce7f257b",
+        "xlsx": "0a4dcfee0e753d047be931ec20006f31b05a79c64e6fe65ed84a55efdc42a0a5"
+      }
+    }
+  ]
+}
