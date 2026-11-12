@@ -1,12 +1,17 @@
 "use client";
 import { Bar, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from "recharts";
+import ChecksheetAnalysis from "@/components/checksheet-analysis";
+import QcFishbone from "@/components/qc-fishbone";
+import SpcControlAnalysis from "@/components/spc-control-analysis";
 import { type DataContent, chartTypes, validateData } from "@/lib/education-data";
 
 const mean = (values: number[]) => values.reduce((sum, x) => sum + x, 0) / values.length;
 export default function EducationChart({ data }: { data: DataContent }) {
   try { validateData(data); } catch (error) { return <p className="standard-note">{error instanceof Error ? error.message : "데이터를 확인하세요."}</p>; }
   const { chart, rows } = data;
-  if (chart === "fishbone") return <div className="cause-cards">{[...new Set(rows.map(row => row[0]))].map(group => <section key={group}><h3>{group}</h3><ul>{rows.filter(row => row[0] === group).map((row, i) => <li key={i}>{row[1]}</li>)}</ul></section>)}</div>;
+  if(chart==="checksheet")return <ChecksheetAnalysis text={rows.map(r=>r.join(",")).join("\n")} mode="category" onModeChange={()=>{}} example={()=>{}} hideModeControls/>;
+  if (["xbar","imr","p","np","c","u"].includes(chart)) {const mode=chart==="xbar"?"xbar-r":chart==="imr"?"i-mr":chart;const text=rows.map(row=>chart==="xbar"?row.slice(1).join(","):chart==="imr"?row[1]:chart==="c"?row[0]:[row[1],row[0]].join(",")).join("\n");return <SpcControlAnalysis mode={mode} text={text} subgroup={5} unit={data.unit||""}/>;}
+  if (chart === "fishbone") return <QcFishbone text={rows.map(r=>r.join(",")).join("\n")} effect={"title" in data?String(data.title):"분석 대상 특성"}/>;
   if (chart === "scatter") return <div className="education-plot"><ResponsiveContainer width="100%" height={320}><ScatterChart><CartesianGrid strokeDasharray="3 3"/><XAxis type="number" dataKey="x" name="X"/><YAxis type="number" dataKey="y" name="Y" domain={["auto", "auto"]}/><Tooltip cursor={{ strokeDasharray: "3 3" }}/><Scatter name="측정값" data={rows.map(row => ({ x: Number(row[0]), y: Number(row[1]) }))} fill="#416bc4"/></ScatterChart></ResponsiveContainer></div>;
   let points: { name: string; value: number; center?: number; upper?: number; lower?: number; cumulative?: number }[] = [];
   let secondary: typeof points = [];
@@ -42,6 +47,6 @@ export default function EducationChart({ data }: { data: DataContent }) {
     if (chart === "imr") secondary = mr.map((value, i) => ({ name: rows[i + 1][0], value, center: mrbar, upper: 3.267 * mrbar, lower: 0 }));
     summary = chart === "grr" ? "부품/측정자/반복별 원측정값 미리보기입니다. 분산 성분 분석은 Gage R&R 분석에서 수행하세요." : "I 관리도와 이동범위(MR) 관리도";
   }
-  function plot(items: typeof points, title?: string) { return <div className="education-plot">{title && <h3>{title}</h3>}<ResponsiveContainer width="100%" height={300}><ComposedChart data={items} margin={{ top: 15, right: 25, bottom: 20, left: 5 }}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="name" interval="preserveStartEnd" tick={{ fontSize: 11 }}/><YAxis domain={["auto", "auto"]}/>{chart === "pareto" && <YAxis yAxisId="percent" orientation="right" domain={[0, 100]} unit="%"/>}<Tooltip/>{bar ? <Bar dataKey="value" name="값" fill="#416bc4"/> : <Line dataKey="value" name="값" stroke="#416bc4" dot={{ r: 3 }}/>}<Line dataKey="center" name="중심선" stroke="#259879" dot={false}/><Line dataKey="upper" name="UCL" stroke="#d65b4a" dot={false} strokeDasharray="5 4"/><Line dataKey="lower" name="LCL" stroke="#d65b4a" dot={false} strokeDasharray="5 4"/>{chart === "pareto" && <Line dataKey="cumulative" name="누적 비율" yAxisId="percent" stroke="#d79525"/>}<ReferenceLine y={0} stroke="#dce5f0"/></ComposedChart></ResponsiveContainer></div>; }
+  function plot(items: typeof points, title?: string) { return <div className="education-plot">{title && <h3>{title}</h3>}<ResponsiveContainer width="100%" height={300}><ComposedChart data={items} margin={{ top: 15, right: 25, bottom: 20, left: 5 }}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="name" interval="preserveStartEnd" tick={{ fontSize: 11 }}/><YAxis domain={chart === "pareto" ? [0, Math.max(1,items.reduce((sum,p)=>sum+p.value,0))] : bar ? [0, "auto"] : ["auto", "auto"]}/>{chart === "pareto" && <YAxis yAxisId="percent" orientation="right" domain={[0, 100]} unit="%"/>}<Tooltip/>{bar ? <Bar dataKey="value" name="값" fill="#416bc4"/> : <Line dataKey="value" name="값" stroke="#416bc4" dot={{ r: 3 }}/>}<Line dataKey="center" name="중심선" stroke="#259879" dot={false}/><Line dataKey="upper" name="UCL" stroke="#d65b4a" dot={false} strokeDasharray="5 4"/><Line dataKey="lower" name="LCL" stroke="#d65b4a" dot={false} strokeDasharray="5 4"/>{chart === "pareto" && <Line dataKey="cumulative" name="누적 비율" yAxisId="percent" stroke="#d79525"/>}<ReferenceLine y={0} stroke="#dce5f0"/></ComposedChart></ResponsiveContainer></div>; }
   return <section className="panel"><h2>{chartTypes[chart].label} · 입력 데이터 미리보기</h2><p>{summary}</p>{plot(points, secondary.length ? chart === "xbar" ? "X̄" : "I" : undefined)}{secondary.length > 0 && plot(secondary, chart === "xbar" ? "R" : "MR")}{chart === "grr" && <a href="/grr" className="secondary-button">Gage R&R 분석 열기</a>}</section>;
 }

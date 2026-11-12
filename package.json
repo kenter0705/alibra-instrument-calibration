@@ -1,6 +1,6 @@
 {
   "name": "calibration-history-manager",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "calibraEdition": "classroom",
   "scripts": {
@@ -35,5 +35,6 @@
     "tailwindcss": "^4.1.16",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
-  }
+  },
+  "calibraReleaseDate": "2026-11-12"
 }
