@@ -132,3 +132,11 @@ button.spc-example-button:active{background:#bbc2cc!important}
 :is(#qc7,#capability) .analysis-print-tools{display:flex;align-items:center;gap:8px}
 :is(#qc7,#capability) .analysis-print-tools label{display:flex;align-items:center;gap:8px;margin:0}
 :is(#qc7,#capability) .analysis-print-tools :is(select,button){height:34px!important;min-height:34px!important;box-sizing:border-box!important;margin:0!important;padding:5px 10px!important;font-size:14px!important;line-height:22px!important}
+
+/* Example loading is identifiable before interaction. */
+:is(#qc7,#capability,.grr-workspace) .spc-function-bar button.spc-example-button,
+:is(#qc7,#capability,.grr-workspace) .spc-data-library button.spc-example-button,
+:is(#qc7,#capability,.grr-workspace) .dataset-actions button.spc-example-button,
+:is(#qc7,#capability,.grr-workspace) button.spc-example-button{background:#e5e7eb!important;background-image:none!important;border:1px solid #b7bec8!important;color:#334155!important;font-weight:600!important;box-shadow:none!important}
+:is(#qc7,#capability,.grr-workspace) button.spc-example-button:hover{background:#d8dde4!important}
+:is(#qc7,#capability,.grr-workspace) .spc-function-bar button.spc-example-button[data-active="true"]{background:#cbd2db!important;color:#25364b!important}
