@@ -1,7 +1,12 @@
 ﻿# CALIBRA CLASSROOM - one verified release, one port, no automatic version fallback.
 $env:PSModulePath = "$PSHOME\Modules;" + $env:PSModulePath
 $ErrorActionPreference = 'Stop'
+$launcherMutex=$null
+$launcherLock=$false
 try {
+  $launcherMutex=New-Object System.Threading.Mutex($false,'Local\CALIBRA-Classroom-Launcher')
+  try{$launcherLock=$launcherMutex.WaitOne(0)}catch [System.Threading.AbandonedMutexException]{$launcherLock=$true}
+  if(-not $launcherLock){exit 0}
   Add-Type -AssemblyName System.Windows.Forms
   $installRoot = Join-Path $env:LOCALAPPDATA 'Programs\CALIBRA-Classroom'
   $appRoot = Join-Path $installRoot 'app'
@@ -41,7 +46,7 @@ try {
   $port = 4000
   function Test-ClassroomServer {
     try {
-      $r=[Net.HttpWebRequest]::Create('http://localhost:4000/api/health');$r.Proxy=$null;$r.Timeout=2000
+      $r=[Net.HttpWebRequest]::Create('http://127.0.0.1:4000/api/health');$r.Proxy=$null;$r.Timeout=5000
       $response=$r.GetResponse()
       try{$reader=[IO.StreamReader]::new($response.GetResponseStream());$health=$reader.ReadToEnd()|ConvertFrom-Json}
       finally{$response.Dispose()}
@@ -50,7 +55,18 @@ try {
   }
   $instanceFile=Join-Path $dataRoot 'server-instance.json'
   $reuse=$false
-  if(Test-Path -LiteralPath $instanceFile){
+  if(Test-ClassroomServer){
+    $listeners=@(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue)
+    foreach($listener in $listeners){
+      $running=Get-CimInstance Win32_Process -Filter ('ProcessId='+$listener.OwningProcess) -ErrorAction SilentlyContinue
+      if($running -and $running.ExecutablePath -eq $node -and $running.CommandLine.Contains($nextCli) -and $running.CommandLine.Contains('--hostname '+$bindHost)){
+        $reuse=$true
+        @{pid=$running.ProcessId;port=$port;buildId=$buildId;buildDir=$release.buildDir;edition='classroom';version=$release.version;lanEnabled=$env:CALIBRA_LAN_ENABLED}|ConvertTo-Json|Set-Content -LiteralPath $instanceFile -Encoding UTF8
+        break
+      }
+    }
+  }
+  if(-not $reuse -and (Test-Path -LiteralPath $instanceFile)){
     $state=Get-Content -LiteralPath $instanceFile -Raw|ConvertFrom-Json
     $process=Get-CimInstance Win32_Process -Filter ('ProcessId='+$state.pid) -ErrorAction SilentlyContinue
     $owned=$process -and $process.ExecutablePath -eq $node -and $process.CommandLine.Contains($nextCli)
@@ -73,7 +89,7 @@ try {
   $initializer=Join-Path $appRoot 'scripts\initialize-local-data.cjs'
   $initial=(& $node $initializer)|ConvertFrom-Json
   if($LASTEXITCODE -ne 0){throw 'Classroom database initialization failed.'}
-  $url='http://localhost:4000/?edition=classroom&version='+$release.version+'&release='+$release.releaseDate
+  $url='http://localhost:4000/?edition=classroom&version='+$release.version+'&release='+$release.releaseDate+'&build='+$buildId
   if($initial.needsSetup){
     $tokenFile=Join-Path $env:CALIBRA_DATA_DIR 'setup\first-admin-token.txt'
     $acl=[IO.File]::GetAccessControl($tokenFile,[Security.AccessControl.AccessControlSections]::Access)
@@ -87,6 +103,9 @@ try {
 } catch {
   $log=Join-Path $env:LOCALAPPDATA 'CALIBRA-Classroom\startup-error.log'
   try{Add-Content -LiteralPath $log -Value ((Get-Date -Format s)+' '+$_.Exception.Message) -Encoding UTF8}catch{}
-  try{Add-Type -AssemblyName System.Windows.Forms;[Windows.Forms.MessageBox]::Show("CALIBRA Classroom startup failed. $($_.Exception.Message)`nLog: $log",'CALIBRA Classroom','OK','Error')|Out-Null}catch{}
+  try{Add-Type -AssemblyName System.Windows.Forms;[Windows.Forms.MessageBox]::Show("CALIBRA Classroom startup failed. $($_.Exception.Message)`nLog: $log",'CALIBRA 멀티','OK','Error')|Out-Null}catch{}
   exit 1
+} finally {
+  if($launcherLock -and $launcherMutex){try{$launcherMutex.ReleaseMutex()}catch{}}
+  if($launcherMutex){$launcherMutex.Dispose()}
 }

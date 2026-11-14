@@ -1,0 +1,18 @@
+"use client";
+import { calculateControl, controlModes, type ControlMode } from "@/lib/spc-control";
+import React, {useState} from "react";
+import {controlSignals} from "@/lib/spc-rules";
+import Plot from "@/components/spc-control-plot";
+import SpcJudgementGuide from "@/components/spc-judgement-guide";
+
+export function ControlSelector({mode,onChange}:{mode:string;onChange:(mode:ControlMode)=>void}){
+ return <section className="spc-control-selector" aria-label="관리도 종류 선택"><h3>관리도 종류</h3><div>{controlModes.map(item=><button type="button" key={item.id} aria-pressed={mode===item.id} onClick={()=>onChange(item.id)}><strong>{item.name}</strong><small>{item.input}</small></button>)}</div><p>{controlModes.find(m=>m.id===mode)?.condition} <a href="/spc-reference">SPC 용어·계산식·6시그마 안내</a></p></section>;
+}
+export default function SpcControlAnalysis({mode,text,subgroup,unit,view="full"}:{mode:string;text:string;subgroup:number;unit:string;view?:"full"|"lesson"|"practice"}){
+ const [settings,setSettings]=useState<{mode:string;patterns:boolean}>({mode,patterns:["xbar-r","xbar-s","i-mr"].includes(mode)});
+ const patterns=settings.mode===mode?settings.patterns:["xbar-r","xbar-s","i-mr"].includes(mode);
+ let result;try{result=calculateControl(mode as ControlMode,text,subgroup,unit)}catch(error){return <p role="alert" className="standard-note">{error instanceof Error?error.message:"입력값을 확인하세요."}</p>}
+ const source=mode==="p"||mode==="np"?"pmc332":mode==="c"||mode==="u"?"pmc331":mode==="i-mr"?"pmc322":"pmc321";
+ const analysed=result.plots.map((plot,i)=>({plot,signals:controlSignals(plot.points,i===0&&patterns)}));const events=analysed.flatMap(({plot,signals})=>plot.points.flatMap((p,i)=>signals[i].length?[{plot:plot.title,point:p.index,rules:signals[i].join(", ")}]:[]));const spreadSignal=analysed.length>1&&analysed[1].signals.some(s=>s.length>0);
+ return <div className="spc-control-analysis"><p className="spc-line-legend"><span><i className="spc-key-limit"/> UCL·LCL 관리한계</span><span><i className="spc-key-center"/> CL 중심선</span><span><i className="spc-key-data"/> 측정값</span></p>{view!=="lesson"&&<details className="spc-pattern-settings"><summary>판정 규칙 설정</summary><label><input type="checkbox" checked={patterns} onChange={e=>setSettings({mode,patterns:e.target.checked})}/> 평균·비율 차트에 연속 패턴 N2~N8 추가 적용</label><p>기본값: X̄/I는 N1~N8, P/Pn/C/U는 N1. R/S/MR는 N1만 판정합니다. 계수치의 추가 패턴은 정규근사·표본수 조건을 검토한 뒤 선택합니다.</p></details>}<p role="status" className="standard-note">{spreadSignal?"산포 관리도 이상: 원인 조사와 안정화 전 평균 관리도의 안정 판정을 보류합니다.":events.length?`이상 신호 ${events.length}개 지점 — 규칙·영향 범위를 확인하고 조치 기준을 따르세요.`:"선택한 기준에서 이상 신호가 없습니다. 안정성과 제품 규격 적합성은 별도로 확인합니다."}</p>{result.plots[0].points.length<25&&<p className="standard-note">현재 관측점은 {result.plots[0].points.length}개입니다. 추이 확인용 예시는 25개 이상을 사용합니다. 기존 데이터는 보존하고 추가 데이터를 입력하거나 종류별 예시를 불러오세요.</p>}{analysed.map(({plot,signals})=><Plot key={plot.title} plot={plot} signals={signals}/>)}{events.length>0&&<table className="data-table"><thead><tr><th>관리도</th><th>시료·부분군</th><th>이상 규칙</th><th>조치</th></tr></thead><tbody>{events.map((e,i)=><tr key={i}><td>{e.plot}</td><td>{e.point}</td><td>{e.rules}</td><td>입력·측정 확인 → 영향 범위 확인 → 원인 조사·조치 → 검증·승인</td></tr>)}</tbody></table>}{view!=="practice"&&<><section className="spc-formula-panel"><h3>계산식과 적용 조건</h3>{result.formulas.map(f=><p key={f}><code>{f}</code></p>)}{result.notes.map(note=><p key={note}>{note}</p>)}<p>부분군 수 k · 부분군 크기 n · d는 불량품수, c는 결점수입니다. 초기 자료로 계산한 한계는 잠정 기준이며 관리한계와 제품 규격한계는 다릅니다. 이탈점은 빨간색으로 표시합니다.</p><a target="_blank" rel="noreferrer" href={`https://www.itl.nist.gov/div898/handbook/pmc/section3/${source}.htm`}>NIST 계산식·사례 확인</a> · <a href="/spc-reference">전체 용어와 계산식</a></section><SpcJudgementGuide/></>}</div>;
+}

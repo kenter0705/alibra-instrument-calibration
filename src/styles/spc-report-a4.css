@@ -1,0 +1,58 @@
+@page spcReport { size:A4 portrait; margin:12mm 12mm 14mm; }
+.spc-report-print{page:spcReport;box-sizing:border-box}
+@media screen {
+ #capability .spc-report-print{width:210mm;max-width:100%;min-height:297mm;margin:22px auto;padding:14mm 12mm;border:1px solid #d4deeb;border-radius:2px;background:#fff;box-shadow:0 8px 30px #203e6212;color:#203a57;font-size:14px;line-height:1.6}
+ #capability .spc-report-header{gap:18px;padding-bottom:16px;border-bottom:3px solid #244f78}
+ #capability .spc-report-header h1{font-size:26px;letter-spacing:-.02em;margin:6px 0}
+ #capability .spc-report-header :is(span,p),#capability .spc-report-no{font-size:12px!important;color:#536c85}
+ #capability .spc-report-no b{display:block;font-size:14px;white-space:nowrap}
+ #capability .spc-report-print h2{font-size:17px;padding:10px 0 7px;margin:20px 0 9px;border-bottom:2px solid #dce5ef;color:#244b70}
+ #capability .spc-report-table{width:100%;table-layout:fixed;font-size:14px!important}
+ #capability .spc-report-table :is(th,td){font-size:14px!important;padding:8px 9px;line-height:1.55;vertical-align:top;white-space:normal!important;overflow-wrap:anywhere;word-break:break-word;border:1px solid #aebed0!important}
+ #capability .spc-report-table th{background:#eff4f9!important;color:#355571}
+ #capability .spc-report-print>table:first-of-type th{width:13%}
+ #capability .spc-report-print>table:first-of-type td{width:20.333%}
+ #capability .spc-report-status{align-items:flex-start;gap:12px;padding:12px;border:1px solid #ccdce9;border-left:4px solid #426fa4;margin:15px 0}
+ #capability .spc-report-status :is(b,span){font-size:14px;line-height:1.6}
+ #capability .spc-report-legend{font-size:12px;gap:12px;line-height:1.6}
+ #capability .spc-report-print :is(.spc-report-note,.spc-report-paragraph){font-size:14px!important;line-height:1.7;color:#405c78}
+ #capability .spc-report-print .spc-raw-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+ #capability .spc-report-print .spc-raw-grid span{font-size:14px;min-height:34px;align-items:center;padding:6px 8px;font-variant-numeric:tabular-nums}
+ #capability .spc-report-print .spc-raw-grid small{font-size:12px!important;color:#637b94}
+ #capability .spc-approval{gap:0;border:1px solid #9cafc3;grid-template-columns:repeat(3,minmax(0,1fr))}
+ #capability .spc-approval>div{border:0;border-right:1px solid #9cafc3;border-radius:0;min-height:90px;padding:11px 14px;font-size:14px}
+ #capability .spc-approval>div:last-child{border-right:0}
+ #capability .spc-report-print footer{font-size:12px;padding-top:10px;color:#637b94}
+ #capability .spc-report-print .spc-report-page-start{margin-top:30px}
+}
+@media print {
+ body:has(.spc-report-print) *:not(:has(.spc-report-print)):not(.spc-report-print):not(.spc-report-print *){display:none!important}
+ body:has(.spc-report-print) :is(.record-page,.record-content,#capability,.capability-panel){display:block!important;width:auto!important;max-width:none!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important}
+ body:has(.spc-report-print) #capability .spc-report-print{position:static!important;display:block!important;page:spcReport;width:auto!important;max-width:none!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;font-size:10pt;line-height:1.45;color:#203a57}
+ .spc-report-print :is(h1,h2,h3){break-after:avoid;page-break-after:avoid;color:#203e60!important}
+ .spc-report-print h1{font-size:21pt!important}
+ .spc-report-print h2{font-size:12pt!important;padding:3mm 0 2mm;margin:5mm 0 2.5mm;border-bottom:1pt solid #9bafc5}
+ .spc-report-print .spc-report-page-start{break-before:page;page-break-before:always;margin-top:0!important}
+ .spc-report-print .spc-report-header{border-bottom:2pt solid #244f78;padding-bottom:4mm;gap:5mm}
+ .spc-report-print :is(.spc-report-header span,.spc-report-header p,.spc-report-no,.spc-report-note,.spc-report-paragraph,.spc-report-status span){font-size:9.5pt!important;line-height:1.5}
+ .spc-report-print .spc-report-table{width:100%!important;table-layout:fixed;border-collapse:collapse!important;font-size:9.5pt!important;break-inside:auto!important}
+ .spc-report-print .spc-report-table :is(th,td){font-size:10.5pt!important;padding:2.2mm 2mm!important;line-height:1.45;vertical-align:top;white-space:normal!important;overflow-wrap:anywhere;word-break:break-word;border:.6pt solid #829bb4!important}
+ .spc-report-print .spc-report-table th{background:#eff4f9!important}
+ .spc-report-print table thead{display:table-header-group!important}
+ .spc-report-print table tr{break-inside:avoid;page-break-inside:avoid}
+ .spc-report-print .spc-report-histogram{height:65mm!important;padding:2mm!important}
+ .spc-report-print :is(.spc-polished-plot,.spc-approval,.spc-report-status){break-inside:avoid;page-break-inside:avoid}
+ .spc-report-print .spc-polished-plot{padding:3mm!important;margin:3mm 0!important;box-shadow:none}
+ .spc-report-print .spc-polished-plot header h3{font-size:11pt!important}
+ .spc-report-print .spc-plot-scroll{overflow:visible!important}
+ .spc-report-print .spc-plot-scroll svg{min-width:0!important;width:100%!important;height:auto!important}
+ .spc-report-print svg text{font-size:16px!important}
+ .spc-report-print .spc-approval{gap:0;border:.7pt solid #829bb4;margin-top:4mm}
+ .spc-report-print .spc-approval>div{min-height:20mm;padding:3mm;border:0;border-right:.7pt solid #829bb4;font-size:9.5pt!important}
+ .spc-report-print .spc-approval>div:last-child{border-right:0}
+ .spc-report-print .spc-raw-grid{grid-template-columns:repeat(5,minmax(0,1fr));font-size:9.5pt}
+ .spc-report-print .spc-raw-grid span{font-size:9.5pt!important;min-height:7mm;padding:1.6mm 2mm;break-inside:avoid}
+ .spc-report-print .spc-raw-grid small{font-size:8.5pt!important}
+ .spc-report-print footer{font-size:8pt!important;color:#536c85;border-top:.5pt solid #9bafc5;margin-top:4mm;padding-top:2mm}
+}
+@media print{body:has(.spc-report-print),body:has(.spc-report-print) :is(.record-page,.record-content,#capability,.capability-panel,.spc-report-print){background:#fff!important}}

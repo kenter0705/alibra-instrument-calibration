@@ -29,11 +29,13 @@
     }
   },
   "include": [
+    ".calibra-build/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
     "prisma/**/*.ts",
     "src/**/*.ts",
-    "src/**/*.tsx"
+    "src/**/*.tsx",
+    ".calibra-releases/release-20261111-saved-fix/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

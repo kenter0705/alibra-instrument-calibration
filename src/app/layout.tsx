@@ -8,9 +8,9 @@ export const metadata: Metadata = {
   description: "계측기 검교정 이력관리 통합 시스템",
   manifest: "/manifest.webmanifest",
   applicationName: APP_NAME,
-  appleWebApp: { capable: true, title: "CALIBRA", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "default" },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="ko"><body>{children}<BoardExportTools/></body></html>;
+  return <html lang="ko"><body><BoardExportTools/>{children}</body></html>;
 }

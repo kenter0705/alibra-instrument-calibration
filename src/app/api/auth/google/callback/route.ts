@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
           user=await prisma.userAccount.create({data:{username:email,email,googleSubject:claims.sub,displayName:claims.name||email,companyName:"",department:"",employeeNo:null,phone:"",passwordHash:hashPassword(randomBytes(32).toString("hex")),profileComplete:false,role:"가입 대기",active:false}});
           return pending(request,user.id);
         }
-        user=await prisma.userAccount.create({data:{username:email,email,googleSubject:claims.sub,displayName:claims.name||email,companyName:"",department:"",employeeNo:null,phone:"",passwordHash:hashPassword(randomBytes(32).toString("hex")),profileComplete:true,role:"관리자"}});
+        return go(request,"/setup");
       }
     }
     const response=NextResponse.redirect(requestLink(request, user.profileComplete ? "/" : "/account/profile"));

@@ -1,6 +1,9 @@
 export type GrrGroup={part:string;operator:string;values:(number|string)[]};
 export type UncertaintySource={name:string;standardUncertainty:number};
-export type GrrData={studyType:"계량치"|"계수치";operators:string[];parts:string[];repeats:number;groups:GrrGroup[];uncertaintySources:UncertaintySource[]};
+export type GrrData={studyType:"계량치"|"계수치";operators:string[];parts:string[];repeats:number;groups:GrrGroup[];uncertaintySources:UncertaintySource[];plannedPartCount?:number;uncertaintyInputs?:import('./grr-uncertainty').GrrUncertaintyInputs};
+// A2, D3, D4, rounded to the coefficient table in Atlas Copco's SPC user guide.
+// https://servaid.atlascopco.com/AssertWeb/en-US/AtlasCopco/Document/6711978/DownloadConvertedFileAsPdf
+export const grrControlFactors:Record<number,[number,number,number]>={2:[1.880,0,3.267],3:[1.023,0,2.574],4:[.729,0,2.282],5:[.577,0,2.114],6:[.483,0,2.004],7:[.419,.076,1.924],8:[.373,.136,1.864],9:[.337,.184,1.816],10:[.308,.223,1.777],11:[.285,.256,1.744],12:[.266,.283,1.717],13:[.249,.307,1.693],14:[.235,.328,1.672],15:[.223,.347,1.653],16:[.212,.363,1.637],17:[.203,.378,1.622],18:[.194,.391,1.608],19:[.187,.403,1.597],20:[.180,.415,1.585]};
 export function analyzeGrr(data:GrrData,lowerSpec?:number|null,upperSpec?:number|null){
   const groups=data.groups.filter(g=>g.values.length);const all=groups.flatMap(g=>g.values.map(Number).filter(Number.isFinite));
   if(data.studyType==="계수치"){
@@ -14,7 +17,7 @@ export function analyzeGrr(data:GrrData,lowerSpec?:number|null,upperSpec?:number
   }
   if(!all.length)return null;
   const mean=all.reduce((s,x)=>s+x,0)/all.length;const ops=data.operators;const parts=data.parts;const r=data.repeats;const o=ops.length;const p=parts.length;
-  if(o<2||p<2||r<2||groups.length<p*o)return null;
+  if(o<2||p<2||!grrControlFactors[r]||groups.length!==p*o||groups.some(group=>group.values.length!==r||group.values.some(value=>!Number.isFinite(Number(value))))||parts.some(part=>ops.some(operator=>groups.filter(group=>group.part===part&&group.operator===operator).length!==1)))return null;
   const avg=(xs:number[])=>xs.length?xs.reduce((s,x)=>s+x,0)/xs.length:mean;
   const cell=(part:string,operator:string)=>groups.find(g=>g.part===part&&g.operator===operator)?.values.map(Number).filter(Number.isFinite)??[];
   const partMeans=new Map(parts.map(part=>[part,avg(ops.flatMap(op=>cell(part,op)))]));const opMeans=new Map(ops.map(op=>[op,avg(parts.flatMap(part=>cell(part,op)))]));
@@ -22,6 +25,6 @@ export function analyzeGrr(data:GrrData,lowerSpec?:number|null,upperSpec?:number
   for(const op of ops)ssO+=p*r*(opMeans.get(op)!-mean)**2;ssPO=ssCells;
   const dfE=p*o*(r-1),dfPO=(p-1)*(o-1),dfO=o-1,dfP=p-1;const msE=ssE/Math.max(1,dfE),msPO=ssPO/Math.max(1,dfPO),msO=ssO/Math.max(1,dfO),msP=ssP/Math.max(1,dfP);
   const repeatVar=msE,interactionVar=Math.max(0,(msPO-msE)/r),operatorVar=Math.max(0,(msO-msPO)/(p*r)),partVar=Math.max(0,(msP-msPO)/(o*r));const rrVar=repeatVar+interactionVar+operatorVar,totalVar=rrVar+partVar;const sigma=Math.sqrt(totalVar),rrSigma=Math.sqrt(rrVar);const typeA=Math.sqrt(repeatVar);const typeB=Math.sqrt(data.uncertaintySources.reduce((s,x)=>s+x.standardUncertainty**2,0));const uc=Math.sqrt(typeA**2+typeB**2);const tolerance=lowerSpec!=null&&upperSpec!=null?upperSpec-lowerSpec:null;
-  const xbar=parts.flatMap(part=>ops.map(operator=>({part,operator,mean:avg(cell(part,operator)),range:Math.max(...cell(part,operator).map(Number))-Math.min(...cell(part,operator).map(Number))})));const rbar=xbar.reduce((s,x)=>s+x.range,0)/(xbar.length||1);const a2=r===2?1.88:r===3?1.023:r===4?.729:.577;
-  return {studyType:data.studyType,samples:all.length,groups:groups.length,mean,repeatability:typeA,operatorSigma:Math.sqrt(operatorVar),partSigma:Math.sqrt(partVar),rrSigma,totalSigma:sigma,rrPercent:totalVar?rrSigma/sigma*100:0,contribution:totalVar?rrVar/totalVar*100:0,ndc:rrSigma?Math.floor(1.41*Math.sqrt(partVar)/rrSigma):0,pt:tolerance&&tolerance>0?6*rrSigma/tolerance*100:null,uncertainty:{typeA,typeB,combined:uc,expanded:2*uc},chart:xbar.map(x=>({...x,upper:mean+a2*rbar,lower:mean-a2*rbar,rUpper:(r===2?3.267:r===3?2.574:r===4?2.282:2.114)*rbar}))};
+  const xbar=parts.flatMap(part=>ops.map(operator=>({part,operator,mean:avg(cell(part,operator)),range:Math.max(...cell(part,operator).map(Number))-Math.min(...cell(part,operator).map(Number))})));const rbar=xbar.reduce((s,x)=>s+x.range,0)/(xbar.length||1);const [a2,d3,d4]=grrControlFactors[r];
+  return {studyType:data.studyType,samples:all.length,groups:groups.length,mean,repeatability:typeA,operatorSigma:Math.sqrt(operatorVar),partSigma:Math.sqrt(partVar),rrSigma,totalSigma:sigma,rrPercent:totalVar?rrSigma/sigma*100:0,contribution:totalVar?rrVar/totalVar*100:0,ndc:rrSigma?Math.floor(1.41*Math.sqrt(partVar)/rrSigma):0,pt:tolerance&&tolerance>0?6*rrSigma/tolerance*100:null,uncertainty:{typeA,typeB,combined:uc,expanded:2*uc},chart:xbar.map(x=>({...x,upper:mean+a2*rbar,lower:mean-a2*rbar,rUpper:d4*rbar,rLower:d3*rbar}))};
 }

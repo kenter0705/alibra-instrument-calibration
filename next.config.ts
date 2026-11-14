@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: process.cwd(),
   transpilePackages: ["pdf-lib", "@pdf-lib/fontkit"],
   // Keep the live release untouched while a candidate build is being prepared.
   distDir: process.env.CALIBRA_BUILD_DIR || ".calibra-build",

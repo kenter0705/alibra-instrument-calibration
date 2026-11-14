@@ -1,0 +1,52 @@
+@media screen {
+  :root { --cal-ink:#20364c; --cal-muted:#728398; --cal-accent:#1c6170; --cal-line:#e0e7ef; }
+  body:has(.record-page),body:has(.shell){background:#f3f6fa;color:var(--cal-ink);-webkit-font-smoothing:antialiased}
+  .record-page .record-content{max-width:1600px;padding:30px 32px 56px;margin:0 auto}
+  .record-page .record-top{min-height:58px;padding:12px 32px;background:#fff;border-bottom:1px solid var(--cal-line);box-shadow:none}
+  .record-page .record-top .back-link{font-size:14px;font-weight:600;color:#456079}
+  .record-page .page-heading{padding:6px 0 25px;margin-bottom:24px;gap:24px;align-items:center}
+  .record-page .page-heading h1{font-size:28px;font-weight:750;letter-spacing:-.9px;line-height:1.35;color:#20364c;margin:6px 0 9px}
+  .record-page .page-heading p{font-size:14px;line-height:1.7;color:#728398}
+  .record-page .eyebrow,.shell .eyebrow{font-size:10px;font-weight:700;letter-spacing:1.8px;color:#65899a}
+  .record-page .record-content>.standard-note{color:#6a7d90;font-size:13px;line-height:1.7}
+  .record-page .record-content .panel{border:1px solid var(--cal-line);border-radius:12px;box-shadow:0 3px 16px #20364c04;background:#fff}
+  .record-page .record-content .panel-head h2{color:#243d56;font-weight:700;letter-spacing:-.35px}
+  .record-page .record-content .primary-button,.shell .primary-button{background:#1c6170;border-color:#1c6170;box-shadow:0 2px 5px #1c617018;border-radius:7px;font-weight:600;transition:background .15s,box-shadow .15s}
+  .record-page .record-content .primary-button:hover,.shell .primary-button:hover{background:#154f5b;box-shadow:0 3px 9px #1c617026}
+  .record-page .secondary-button,.shell .secondary-button{border-color:#d9e2eb;background:#fff;color:#526a81;border-radius:7px;font-weight:600}
+  .record-page .secondary-button:hover,.shell .secondary-button:hover{border-color:#aac3cc;background:#f5fafb;color:#1c6170}
+  .record-page .record-content input,.record-page .record-content select{color:#294259;transition:border-color .15s,box-shadow .15s}
+  .record-page .record-content input:focus-visible,.record-page .record-content select:focus-visible{outline:none;border-color:#347c8a;box-shadow:0 0 0 3px #347c8a14}
+  .record-page .record-content .data-table th{background:#f2f5f9;color:#5e748b;font-size:13px;font-weight:650;line-height:1.5}
+  .record-page .record-content .data-table td{color:#3c536a;line-height:1.6}
+  .record-page .record-content .data-table tbody tr:hover{background:#f8fbfc}
+  .record-page .spc-tool-lesson{background:#fff!important;border-color:#e0e7ef!important}
+  .record-page .spc-lesson-formula{background:#f5f8fb!important;border-color:#dee7ef!important;border-radius:9px}
+  .shell{font-size:14px;background:#f3f6fa;color:#20364c}
+  .shell .sidebar{background:#182c3f;border-right:0;color:#d6e0e8;box-shadow:none}
+  .shell .sidebar .brand{color:#fff;letter-spacing:.5px}
+  .shell .sidebar .brand-mark{background:#267383;color:white;border-radius:10px;box-shadow:none}
+  .shell .sidebar .workspace{background:#ffffff08;border-color:#ffffff12;color:#aebecd}
+  .shell .sidebar .nav-caption{color:#8097ab;font-size:10px;letter-spacing:1.4px}
+  .shell .sidebar .nav-item{color:#c4d1dc;font-size:13px;border-radius:7px;line-height:1.5}
+  .shell .sidebar .nav-item:hover,.shell .sidebar .nav-item.active,.shell .sidebar details[open]>.nav-item{background:#ffffff0d;color:#fff}
+  .shell .sidebar .nav-subitems a{font-size:12px;color:#93aabd;line-height:1.6;border-radius:5px}
+  .shell .sidebar .nav-subitems a:hover{background:#ffffff0a;color:#e5f2f4}
+  .shell .sidebar .sidebar-bottom{border-top-color:#ffffff12;color:#adc1d1}
+  .shell .topbar{background:#ffffffed;border-bottom:1px solid #dfe7ef;box-shadow:none;min-height:64px}
+  .shell .topbar .crumb{font-size:13px;color:#74879b}
+  .shell .content{padding:28px 30px 44px}
+  .shell .panel{border:1px solid #e0e7ef;border-radius:12px;box-shadow:0 3px 16px #20364c04}
+  .shell .home-quick-links a{border-color:#dfe7ef;box-shadow:none;border-radius:10px;transition:transform .15s,border-color .15s}
+  .shell .home-quick-links a:hover{transform:translateY(-2px);border-color:#84b0bc}
+  @media(max-width:750px){.record-page .record-content{padding:20px 15px 36px}.record-page .record-top{padding:11px 16px}.record-page .page-heading h1{font-size:24px}.shell .content{padding:18px 14px}}
+}
+/* Board text must remain readable across list, detail and entry screens. */
+@media screen {
+ .record-page,.record-content{font-size:14px;line-height:1.65}
+ .record-page :is(p,small,label,input,select,textarea,button,td,th,li,summary),
+ .record-content :is(p,small,label,input,select,textarea,button,td,th,li,summary),
+ .data-table :is(td,th),.board-export-tools{font-size:14px!important}
+ .record-page :is(input,select,textarea),.record-content :is(input,select,textarea){line-height:1.5}
+ .data-table :is(td,th){line-height:1.55}
+}

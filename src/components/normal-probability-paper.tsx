@@ -1,0 +1,13 @@
+"use client";
+import {CartesianGrid,ComposedChart,Line,ResponsiveContainer,Scatter,Tooltip,XAxis,YAxis} from 'recharts';
+import {inverseNormal} from '@/lib/normal-quantile';
+type Point={z:number;value:number;fit:number};
+const probabilities=[.001,.01,.05,.1,.2,.5,.8,.9,.95,.99,.999];
+const ticks=probabilities.map(inverseNormal);
+function percentTick(z:number){const index=ticks.findIndex(value=>Math.abs(value-z)<1e-7);return index<0?'':`${Number((probabilities[index]*100).toFixed(1))}%`}
+export default function NormalProbabilityPaper({points,unit}:{points:Point[];unit:string}){
+ const first=points[0],last=points.at(-1),slope=first&&last&&last.z!==first.z?(last.fit-first.fit)/(last.z-first.z):0,intercept=first?first.fit-slope*first.z:0;
+ const data=points.map((point,index)=>({...point,probability:(index+.5)/points.length,fitZ:slope>0?(point.value-intercept)/slope:null}));
+ const min=points.length?Math.min(...points.map(point=>point.value)):0,max=points.length?Math.max(...points.map(point=>point.value)):1,padding=Math.max((max-min)*.06,Math.abs(max)*.0001,.00001),extent=Math.max(inverseNormal(.999),...points.map(point=>Math.abs(point.z)));
+ return <section className="normal-paper-section"><h3>정규확률지 · 측정값과 누적확률(%)</h3><div className="normal-paper-key"><span>가로축 · 측정값 ({unit})</span><span>세로축 · 누적확률 · 정규확률 눈금</span><span>● 관측값　 ┄ 정규 기준선</span></div><div className="cap-chart normal-probability-paper" role="img" aria-label="측정값과 누적확률 백분율의 정규확률지"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={data} margin={{top:20,right:30,left:12,bottom:25}}><CartesianGrid stroke="#dfe7ee" strokeDasharray="3 3"/><XAxis type="number" dataKey="value" domain={[min-padding,max+padding]} tickFormatter={value=>Number(value.toPrecision(6)).toString()} tickCount={7} height={40} tickMargin={10}/><YAxis type="number" dataKey="z" domain={[-extent,extent]} ticks={ticks} tickFormatter={percentTick} width={72} tickMargin={9}/><Tooltip content={({active,payload})=>{const point=payload?.[0]?.payload as typeof data[number]|undefined;return active&&point?<div className="normal-paper-tooltip"><strong>측정값 {point.value.toFixed(4)} {unit}</strong><span>누적확률 {(point.probability*100).toFixed(2)}%</span></div>:null}}/><Line type="linear" dataKey="fitZ" name="정규 기준선 · z" stroke="#ba5555" strokeWidth={2} strokeDasharray="6 4" dot={false} isAnimationActive={false}/><Scatter dataKey="z" name="관측값" fill="#2b6f9c" shape="circle" isAnimationActive={false}/></ComposedChart></ResponsiveContainer></div><p className="normal-paper-axis">측정값 ({unit})</p><p className="cap-note">세로축의 1%·5%·50%·95%·99%는 등간격 확률 축이 아닌 정규확률 눈금입니다. 정규분포에 가까우면 관측점이 대각선 기준선 부근에 놓입니다. 아래 Q–Q 그래프는 같은 자료를 다른 축 형식으로 보여줍니다.</p></section>;
+}
